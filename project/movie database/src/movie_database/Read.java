@@ -1,9 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package movie.database;
+package movie_database;
 
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -17,73 +12,77 @@ import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 
-/**
- *
- * @author Win8
- */
 public class Read extends javax.swing.JFrame {
     
-    private int id;
+    private int id, out;
     private String cover;
 
-    /**
-     * Creates new form Create
-     */
     public Read() {
         initComponents();
+        if(Session.getStatus()){
+            btnLogout.setVisible(true);
+            btnLogin.setVisible(false);
+            if(Session.getRole()==1){
+                btnEdit.setVisible(true);
+                btnDelete.setVisible(true);
+            } else {
+                btnEdit.setVisible(false);
+                btnDelete.setVisible(false);
+            }
+        } else {
+            btnEdit.setVisible(false);
+            btnDelete.setVisible(false);
+            btnLogin.setVisible(true);
+            btnLogout.setVisible(false);
+        }
     }
     
-    public String movieGenre(String genre){
+    public String movieGenre(int genre1, int genre2, int genre3, int genre4, int genre5){
         String movieGenre = "";
-        String[] index = genre.split(",");
-        String[] all = new String[3];
+        String[] genre = new String[5];
         int count = 0;
-        int genre1 = Integer.parseInt(index[0]);
-        int genre2 = Integer.parseInt(index[1]);
-        int genre3 = Integer.parseInt(index[2]);
-        int genre4 = Integer.parseInt(index[3]);
-        int genre5 = Integer.parseInt(index[4]);
         String sql = "SELECT * FROM Genre WHERE id = ? OR id = ? OR id = ? OR id = ? OR id = ?";
         try{
-            Connection conn = connect.connectDB();
-            PreparedStatement state = conn.prepareStatement(sql);
-            state.setInt(1, genre1);
-            state.setInt(2, genre2);
-            state.setInt(3, genre3);
-            state.setInt(4, genre4);
-            state.setInt(5, genre5);
-            ResultSet rs = state.executeQuery();
+            Connection c = Connect.connect();
+            PreparedStatement ps = c.prepareStatement(sql);
+            ps.setInt(1, genre1);
+            ps.setInt(2, genre2);
+            ps.setInt(3, genre3);
+            ps.setInt(4, genre4);
+            ps.setInt(5, genre5);
+            ResultSet rs = ps.executeQuery();
             while(rs.next()){
-                all[count] = rs.getString("genre");
+                genre[count] = rs.getString("genre");
                 count++;
             }
         } catch (SQLException e){
             System.out.println(e.getMessage());
         }
         
-        movieGenre = all[0] + ", " + all[1] + ", " + all[2] + ", " + all[3] + ", " + all[4];
+        movieGenre = genre[0] + ", " + genre[1] + ", " + genre[2] + ", " + genre[3] + ", " + genre[4];
         return movieGenre;
     }
     
-    public void read(int id){
+    public void read(int id, int out){
         this.id = id;
+        this.out = out;
         this.setVisible(true);
         String sql = "SELECT * FROM Movie WHERE id = ?";
         try{
-           Connection conn = connect.connectDB();
-           PreparedStatement state = conn.prepareStatement(sql);
-           state.setInt(1, id);
-           ResultSet rs = state.executeQuery();
+           Connection c = Connect.connect();
+           PreparedStatement ps = c.prepareStatement(sql);
+           ps.setInt(1, id);
+           ResultSet rs = ps.executeQuery();
            while(rs.next()){
                 lblIsiJudul.setText(rs.getString("judul"));
                 lblIsiTahun.setText(rs.getString("tahun"));
-                String genre = movieGenre(rs.getString("genre"));
+                String genre = movieGenre(rs.getInt("genre1"), rs.getInt("genre2"), rs.getInt("genre3"), rs.getInt("genre4"), rs.getInt("genre5"));
                 lblIsiGenre.setText(genre);
                 lblIsiSinopsis.setText(rs.getString("sinopsis"));
                 cover=Path.getPathCover() + rs.getString("gambar");
                 viewImg(Path.getPathCover() + rs.getString("gambar"));
             }
-        } catch (SQLException e){
+        }catch (SQLException e){
             System.out.println(e.getMessage());
         }
     }
@@ -101,26 +100,25 @@ public class Read extends javax.swing.JFrame {
     }
     
     public void delete(){
-        String sql = "DELETE FROM Movie WHERE id = ?";
-        try{
-            Connection conn = connect.connectDB();
-            PreparedStatement state = conn.prepareStatement(sql);
-            state.setInt(1, id);
-            state.executeUpdate();
-            File img = new File(cover);
-            img.delete();
-            JOptionPane.showMessageDialog(null, "Film berhasil dihapus");
-            new Home().setVisible(true);
-            this.dispose();
-        }catch(Exception e){
-            System.out.println(e.getMessage());
+        int confirm = JOptionPane.showConfirmDialog(this, "Apakah anda yakin?", "Delete", JOptionPane.OK_CANCEL_OPTION);
+        if(confirm == 0){
+            String sql = "DELETE FROM Movie WHERE id = ?";
+            try{
+                Connection c = Connect.connect();
+                PreparedStatement ps = c.prepareStatement(sql);
+                ps.setInt(1, id);
+                ps.executeUpdate();
+                File image = new File(cover);
+                image.delete();
+                JOptionPane.showMessageDialog(null, "Film berhasil dihapus");
+                new Home().setVisible(true);
+                this.dispose();
+            }catch(Exception e){
+                System.out.println(e.getMessage());
+            }
         }
     }
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
+    
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -140,6 +138,7 @@ public class Read extends javax.swing.JFrame {
         btnDelete = new javax.swing.JButton();
         btnEdit = new javax.swing.JButton();
         btnLogout = new javax.swing.JButton();
+        btnLogin = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
@@ -257,6 +256,13 @@ public class Read extends javax.swing.JFrame {
             }
         });
 
+        btnLogin.setText("Login");
+        btnLogin.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnLoginActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -267,6 +273,8 @@ public class Read extends javax.swing.JFrame {
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(btnLogin)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnLogout)))
                 .addContainerGap())
         );
@@ -274,7 +282,9 @@ public class Read extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(btnLogout)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnLogout)
+                    .addComponent(btnLogin))
                 .addGap(62, 62, 62)
                 .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
@@ -285,12 +295,21 @@ public class Read extends javax.swing.JFrame {
 
     private void btnLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogoutActionPerformed
         // TODO add your handling code here:
+        int confirm = JOptionPane.showConfirmDialog(null, "Apakah anda yakin?", "Logout", JOptionPane.OK_CANCEL_OPTION);
+        if(confirm == 0){
+            Logout.logout();
+            this.dispose();
+        }
     }//GEN-LAST:event_btnLogoutActionPerformed
 
     private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
         // TODO add your handling code here:
-        new Home().setVisible(true);
-        this.dispose();
+        if(out==1){
+            new Home().setVisible(true);
+            this.dispose();
+        }else if(out==2){
+            this.dispose();
+        }
     }//GEN-LAST:event_btnBackActionPerformed
 
     private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
@@ -303,6 +322,12 @@ public class Read extends javax.swing.JFrame {
         new Update().read(id);
         this.dispose();
     }//GEN-LAST:event_btnEditActionPerformed
+
+    private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginActionPerformed
+        // TODO add your handling code here:
+        new Login().setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_btnLoginActionPerformed
 
     /**
      * @param args the command line arguments
@@ -343,6 +368,7 @@ public class Read extends javax.swing.JFrame {
     private javax.swing.JButton btnBack;
     private javax.swing.JButton btnDelete;
     private javax.swing.JButton btnEdit;
+    private javax.swing.JButton btnLogin;
     private javax.swing.JButton btnLogout;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

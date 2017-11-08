@@ -1,9 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package movie.database;
+package movie_database;
 
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -22,20 +17,18 @@ import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
-/**
- *
- * @author Win8
- */
 public class Update extends javax.swing.JFrame {
     
-    private int id, tahunRelease;
-    private String judul, genre, sinopsis, cover;
+    private int id, tahunRelease, genre1, genre2, genre3, genre4, genre5;
+    private String judul, sinopsis, cover;
 
-    /**
-     * Creates new form Create
-     */
     public Update() {
         initComponents();
+        if(Session.getStatus()){
+            btnLogout.setVisible(true);
+        } else {
+            btnLogout.setVisible(false);
+        }
     }
 
     public void read(int id){
@@ -43,39 +36,44 @@ public class Update extends javax.swing.JFrame {
         this.setVisible(true);
         String sql = "SELECT * FROM Movie WHERE id = ?";
         try{
-           Connection conn = connect.connectDB();
-           PreparedStatement state = conn.prepareStatement(sql);
-           state.setInt(1, id);
-           ResultSet rs = state.executeQuery();
+           Connection c = Connect.connect();
+           PreparedStatement ps = c.prepareStatement(sql);
+           ps.setInt(1, id);
+           ResultSet rs = ps.executeQuery();
            while(rs.next()){
                 judul = rs.getString("judul");
                 tahunRelease = rs.getInt("tahun");
-                genre = rs.getString("genre");
+                genre1 = rs.getInt("genre1");
+                genre2 = rs.getInt("genre2");
+                genre3 = rs.getInt("genre3");
+                genre4 = rs.getInt("genre4");
+                genre5 = rs.getInt("genre5");
                 sinopsis = rs.getString("sinopsis");
                 cover = Path.getPathCover() + rs.getString("gambar");
                 txtJudul.setText(judul);
                 txtTahun.setText(Integer.toString(tahunRelease));
-                String[] index = genre.split(",");
-                cbxGenre1.setSelectedIndex(Integer.parseInt(index[0]));
-                cbxGenre2.setSelectedIndex(Integer.parseInt(index[1]));
-                cbxGenre3.setSelectedIndex(Integer.parseInt(index[2]));
-                cbxGenre3.setSelectedIndex(Integer.parseInt(index[3]));
-                cbxGenre3.setSelectedIndex(Integer.parseInt(index[4]));
+                cbxGenre1.setSelectedIndex(genre1);
+                cbxGenre2.setSelectedIndex(genre2);
+                cbxGenre3.setSelectedIndex(genre3);
+                cbxGenre3.setSelectedIndex(genre4);
+                cbxGenre3.setSelectedIndex(genre5);
                 txtSinopsis.setText(sinopsis);
                 viewImg(cover);
+                lblPicture.setText("File path: "+cover);
             }
         } catch (SQLException e){
             System.out.println(e.getMessage());
         }
     }
     
-    public boolean save(String judul, int tahunRelease, String genre, String sinopsis, String cover) throws Exception{  
+    public boolean save(int id, String judul, int tahunRelease, int genre1, int genre2, int genre3, int genre4, int genre5, String sinopsis, String cover) throws Exception{  
         File img = new File(cover);
         String path = Path.getPathCover()+img.getName();
         File newImg = new File(path);
         
         InputStream inStream = null;
         OutputStream outStream = null;
+        boolean result = false;
         
         if(!cover.equals(path)){
             try{
@@ -98,18 +96,23 @@ public class Update extends javax.swing.JFrame {
             path = cover;
         }
         
-        String sql = "UPDATE Movie SET judul = ?, tahun = ?, genre = ?, sinopsis = ?, gambar = ?";
+        String sql = "UPDATE Movie SET judul = ?, tahun = ?, genre1 = ?, genre2 = ?, genre3 = ?, genre4 = ?, genre5 = ?, sinopsis = ?, gambar = ? WHERE id = ?";
         try {
-                Connection conn = connect.connectDB();
-                PreparedStatement state = conn.prepareStatement(sql);
-                state.setString(1, judul);
-                state.setInt(2, tahunRelease);
-                state.setString(3, genre);
-                state.setString(4, sinopsis);
-                state.setString(5, img.getName());
-                state.executeUpdate();
-                return true;
-            } catch (SQLException e) {
+            Connection c = Connect.connect();
+            PreparedStatement ps = c.prepareStatement(sql);
+            ps.setString(1, judul);
+            ps.setInt(2, tahunRelease);
+            ps.setInt(3, genre1);
+            ps.setInt(4, genre2);
+            ps.setInt(5, genre3);
+            ps.setInt(6, genre4);
+            ps.setInt(7, genre5);
+            ps.setString(8, sinopsis);
+            ps.setString(9, img.getName());
+            ps.setInt(10, id);
+            ps.executeUpdate();
+            return true;
+            }catch (SQLException e) {
                 System.out.println(e.getMessage());
             }
         return false;
@@ -127,11 +130,6 @@ public class Update extends javax.swing.JFrame {
         lblPicture.setIcon(ii);
     }
     
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -370,6 +368,11 @@ public class Update extends javax.swing.JFrame {
 
     private void btnLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogoutActionPerformed
         // TODO add your handling code here:
+        int confirm = JOptionPane.showConfirmDialog(null, "Apakah anda yakin?", "Logout", JOptionPane.OK_CANCEL_OPTION);
+        if(confirm == 0){
+            Logout.logout();
+            this.dispose();
+        }
     }//GEN-LAST:event_btnLogoutActionPerformed
 
     private void btnChooseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnChooseActionPerformed
@@ -386,7 +389,7 @@ public class Update extends javax.swing.JFrame {
 
     private void btnCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelActionPerformed
         // TODO add your handling code here:
-        new Home().setVisible(true);
+        new Read().read(id, 1);
         this.dispose();
     }//GEN-LAST:event_btnCancelActionPerformed
 
@@ -402,19 +405,19 @@ public class Update extends javax.swing.JFrame {
             judul = txtJudul.getText();
             tahunRelease = Integer.parseInt(txtTahun.getText());
             sinopsis = txtSinopsis.getText();
-            genre = String.valueOf(cbxGenre1.getSelectedIndex()) + "," + 
-                    String.valueOf(cbxGenre2.getSelectedIndex()) + "," +  
-                    String.valueOf(cbxGenre3.getSelectedIndex()) + "," +
-                    String.valueOf(cbxGenre4.getSelectedIndex()) + "," +
-                    String.valueOf(cbxGenre5.getSelectedIndex());
+            genre1 = cbxGenre1.getSelectedIndex();
+            genre2 = cbxGenre2.getSelectedIndex();
+            genre3 = cbxGenre3.getSelectedIndex();
+            genre4 = cbxGenre4.getSelectedIndex();
+            genre5 = cbxGenre5.getSelectedIndex();
             try{
-                result = save(judul, tahunRelease, genre, sinopsis, cover);
+                result = save(id, judul, tahunRelease, genre1, genre2, genre3, genre4, genre5, sinopsis, cover);
             } catch (Exception e) {
                 System.out.println(e.getMessage());
             }
             if(result){
                 JOptionPane.showMessageDialog(jPanel1, "Film berhasil diubah");
-                new Read().read(id);
+                new Read().read(id, 1);
                 this.dispose();
             } else {
                 JOptionPane.showMessageDialog(jPanel1, "Film gagal diubah");
@@ -422,9 +425,6 @@ public class Update extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_btnSaveActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">

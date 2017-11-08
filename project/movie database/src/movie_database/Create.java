@@ -1,9 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-package movie.database;
+package movie_database;
 
 import java.awt.Image;
 import java.awt.image.BufferedImage;
@@ -22,31 +17,29 @@ import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
-/**
- *
- * @author Win8
- */
 public class Create extends javax.swing.JFrame {
     
-    private int tahunRelease;
-    private String judul, genre, sinopsis, cover;
+    private int tahunRelease, genre1, genre2, genre3, genre4, genre5;
+    private String judul, sinopsis, cover;
 
-    /**
-     * Creates new form Create
-     */
     public Create() {
         initComponents();
+        if(Session.getStatus()){
+            btnLogout.setVisible(true);
+        } else {
+            btnLogout.setVisible(false);
+        }
     }
 
     public boolean check(String judul, int tahunRelease){
         String sql = "SELECT * FROM Movie WHERE judul = ? AND tahun = ?";
         int count = 0;
         try{
-           Connection conn = connect.connectDB();
-           PreparedStatement state = conn.prepareStatement(sql);
-           state.setString(1, judul);
-           state.setInt(2, tahunRelease);
-           ResultSet rs = state.executeQuery();
+           Connection c = Connect.connect();
+           PreparedStatement ps = c.prepareStatement(sql);
+           ps.setString(1, judul);
+           ps.setInt(2, tahunRelease);
+           ResultSet rs = ps.executeQuery();
            while(rs.next()){
                count++;
            }
@@ -61,7 +54,7 @@ public class Create extends javax.swing.JFrame {
         return false;
     }
     
-    public boolean save(String judul, int tahunRelease, String genre, String sinopsis, String cover) throws Exception{ 
+    public void save(String judul, int tahunRelease, int genre1, int genre2, int genre3, int genre4, int genre5, String sinopsis, String cover) throws Exception{ 
         File img = new File(cover);
         String path = Path.getPathCover()+img.getName();
         File newImg = new File(path);
@@ -70,46 +63,46 @@ public class Create extends javax.swing.JFrame {
         OutputStream outStream = null;
         boolean result = false;
         
-        result = check(judul, tahunRelease);
-        if(result){
-            try{
-                byte[] buffer = new byte[1024];
-                int length;
+        try{
+            byte[] buffer = new byte[1024];
+            int length;
                 
-                inStream = new FileInputStream(img);
-                outStream = new FileOutputStream(newImg);
+            inStream = new FileInputStream(img);
+            outStream = new FileOutputStream(newImg);
             
-                while((length = inStream.read(buffer)) > 0){
-                    outStream.write(buffer, 0, length);
-                }
+            while((length = inStream.read(buffer)) > 0){
+                outStream.write(buffer, 0, length);
+            }
                 
-                inStream.close();
-                outStream.close();
-            } catch(IOException e){
+            inStream.close();
+            outStream.close();
+            }catch(IOException e){
                 System.out.println(e.getMessage());
             }
         
-            String sql = "INSERT INTO Movie(judul, tahun, genre, sinopsis, gambar) VALUES(?, ?, ?, ?, ?)";
-            try {
-                Connection conn = connect.connectDB();
-                PreparedStatement state = conn.prepareStatement(sql);
-                state.setString(1, judul);
-                state.setInt(2, tahunRelease);
-                state.setString(3, genre);
-                state.setString(4, sinopsis);
-                state.setString(5, img.getName());
-                state.executeUpdate();
-                return true;
-            } catch (SQLException e) {
+        String sql = "INSERT INTO Movie(judul, tahun, genre1, genre2, genre3, genre4, genre5, sinopsis, gambar) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        
+        try{
+            Connection c = Connect.connect();
+            PreparedStatement ps = c.prepareStatement(sql);
+            ps.setString(1, judul);
+            ps.setInt(2, tahunRelease);
+            ps.setInt(3, genre1);
+            ps.setInt(4, genre2);
+            ps.setInt(5, genre3);
+            ps.setInt(6, genre4);
+            ps.setInt(7, genre5);
+            ps.setString(8, sinopsis);
+            ps.setString(9, img.getName());
+            ps.executeUpdate();
+            JOptionPane.showMessageDialog(jPanel1, "Film berhasil ditambahkan");
+            new Home().setVisible(true);
+            this.dispose();    
+            }catch (SQLException e) {
                 System.out.println(e.getMessage());
-            }
-            return false;
-        }
-        else{
-            JOptionPane.showMessageDialog(jPanel1, "Film sudah ada!");
-        }
-        return false;
+            }   
     }
+    
     
     public void viewImg(String cover){
         BufferedImage bimg = null;
@@ -123,11 +116,6 @@ public class Create extends javax.swing.JFrame {
         lblPicture.setIcon(ii);
     }
     
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -152,9 +140,9 @@ public class Create extends javax.swing.JFrame {
         cbxGenre4 = new javax.swing.JComboBox();
         cbxGenre5 = new javax.swing.JComboBox();
         btnLogout = new javax.swing.JButton();
+        jLabel6 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setPreferredSize(new java.awt.Dimension(800, 600));
         setResizable(false);
 
         jPanel1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
@@ -330,6 +318,10 @@ public class Create extends javax.swing.JFrame {
             }
         });
 
+        jLabel6.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
+        jLabel6.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel6.setText("Movie Database");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -339,7 +331,8 @@ public class Create extends javax.swing.JFrame {
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, 711, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnLogout)))
                 .addContainerGap())
         );
@@ -347,8 +340,10 @@ public class Create extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(btnLogout)
-                .addGap(62, 62, 62)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(btnLogout)
+                    .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 66, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(19, 19, 19)
                 .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addContainerGap())
         );
@@ -366,6 +361,11 @@ public class Create extends javax.swing.JFrame {
 
     private void btnLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogoutActionPerformed
         // TODO add your handling code here:
+        int confirm = JOptionPane.showConfirmDialog(null, "Apakah anda yakin?", "Logout", JOptionPane.OK_CANCEL_OPTION);
+        if(confirm == 0){
+            Logout.logout();
+            this.dispose();
+        }
     }//GEN-LAST:event_btnLogoutActionPerformed
 
     private void btnChooseActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnChooseActionPerformed
@@ -398,29 +398,28 @@ public class Create extends javax.swing.JFrame {
             judul = txtJudul.getText();
             tahunRelease = Integer.parseInt(txtTahun.getText());
             sinopsis = txtSinopsis.getText();
-            genre = String.valueOf(cbxGenre1.getSelectedIndex()) + "," + 
-                    String.valueOf(cbxGenre2.getSelectedIndex()) + "," +  
-                    String.valueOf(cbxGenre3.getSelectedIndex()) + "," +
-                    String.valueOf(cbxGenre4.getSelectedIndex()) + "," +
-                    String.valueOf(cbxGenre5.getSelectedIndex());
+            genre1 = cbxGenre1.getSelectedIndex();
+            genre2 = cbxGenre2.getSelectedIndex();
+            genre3 = cbxGenre3.getSelectedIndex();
+            genre1 = cbxGenre1.getSelectedIndex();
+            genre2 = cbxGenre2.getSelectedIndex();
             try{
-                result = save(judul, tahunRelease, genre, sinopsis, cover);
-            } catch (Exception e) {
+                result = check(judul, tahunRelease);
+            }catch (Exception e) {
                 System.out.println(e.getMessage());
             }
             if(result){
-                JOptionPane.showMessageDialog(jPanel1, "Film berhasil ditambahkan");
-                new Home().setVisible(true);
-                this.dispose();
-            } else {
-                JOptionPane.showMessageDialog(jPanel1, "Film gagal ditambahkan");
+                try{
+                    save(judul, tahunRelease, genre1, genre2, genre3, genre4, genre5, sinopsis, cover);
+                }catch (Exception e) {
+                    System.out.println(e.getMessage());
+                }
+            }else{
+                JOptionPane.showMessageDialog(jPanel1, "Film sudah ada!");
             }
         }
     }//GEN-LAST:event_btnSaveActionPerformed
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
@@ -468,6 +467,7 @@ public class Create extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblPicture;
