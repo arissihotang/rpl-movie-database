@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<jnlp spec="1.0" xmlns:jfx="http://javafx.com" href="MovieDatabase.jnlp">
+  <information>
+    <title>MovieDatabase</title>
+    <vendor>Win8</vendor>
+    <description>null</description>
+    <offline-allowed/>
+  </information>
+  <resources>
+    <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
+    <jar href="MovieDatabase.jar" size="44922" download="eager" />
+    <jar href="lib\sqlite-jdbc-3.20.0.jar" size="6637012" download="eager" />
+  </resources>
+  <application-desc main-class="moviedatabase.MovieDatabase"  name="MovieDatabase" >
+  </application-desc>
+  <update check="always"/>
+</jnlp>
