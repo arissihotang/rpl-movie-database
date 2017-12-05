@@ -5,6 +5,22 @@
  */
 package moviedatabase;
 
+import java.awt.GridLayout;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.HashMap;
+import java.util.Map;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JOptionPane;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 
 /**
@@ -23,7 +39,75 @@ public class Home extends javax.swing.JFrame {
             e.printStackTrace();
         }
         initComponents();
+        if(Session.getStatus()){
+            btnLogin.setVisible(false);
+            btnLogout.setVisible(true);
+            if(Session.getRole()==1){
+                //admin
+                btnAdd.setVisible(true);
+                btnAddGenre.setVisible(true);
+            }else{
+                btnAdd.setVisible(false);
+                btnAddGenre.setVisible(false);
+            }
+        }else{
+            btnAdd.setVisible(false);
+            btnAddGenre.setVisible(false);
+            btnLogout.setVisible(false);
+            btnLogin.setVisible(true);
+        }
+//        show();
     }
+    
+//    public void show(){
+//        String sql = "SELECT * FROM Movie";
+//        
+//        Map<Integer, JButton> btnImage = new HashMap<Integer, JButton>();
+//        jPanel1.setLayout(new GridLayout(0, 4));
+//        
+//        try{
+//            Connection c = SQLiteJDBCDriverConnection.connect();
+//            Statement s = c.createStatement();
+//            ResultSet rs = s.executeQuery(sql);
+//            while(rs.next()){
+//                int id = rs.getInt("id");
+//                String img = "src/Image/" + rs.getString("gambar");
+//                String judul = rs.getString("judul");
+//                String tahun = rs.getString("tahun");
+//                
+//                BufferedImage bimg = null;
+//                try{
+//                    bimg = ImageIO.read(new File(img));
+//                } catch(IOException e){
+//                    System.out.println(e.getMessage());
+//                }
+//                Image image = bimg.getScaledInstance(150, 200, Image.SCALE_SMOOTH);
+//                ImageIcon ii = new ImageIcon(image);
+//                
+//                btnImage.put(id, new JButton(judul + " (" + tahun + ")", ii){
+//                    {
+//                        setSize(150, 200);
+//                        setMaximumSize(getSize());
+//                    }
+//                });
+//            }
+//        }catch(SQLException e){
+//            System.out.println(e.getMessage());
+//        }
+//        
+//        for(int key : btnImage.keySet()){
+//            btnImage.get(key).setVerticalTextPosition(SwingConstants.BOTTOM);
+//            btnImage.get(key).setHorizontalTextPosition(SwingConstants.CENTER);
+//            
+//            jPanel1.add(btnImage.get(key));
+//            
+//            btnImage.get(key).addActionListener(new java.awt.event.ActionListener() {
+//                public void actionPerformed(java.awt.event.ActionEvent evt) {
+//                    btnImageActionPerformed(evt, key);
+//                }
+//            });
+//        }
+//    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -43,8 +127,10 @@ public class Home extends javax.swing.JFrame {
         jPanel2 = new javax.swing.JPanel();
         btnSearch = new javax.swing.JButton();
         btnAdd = new javax.swing.JButton();
+        btnAddGenre = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Movie Database");
         setResizable(false);
 
         jPanel1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
@@ -118,15 +204,34 @@ public class Home extends javax.swing.JFrame {
         jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
         btnSearch.setText("Search");
+        btnSearch.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnSearchActionPerformed(evt);
+            }
+        });
 
         btnAdd.setText("Add Movie");
+        btnAdd.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddActionPerformed(evt);
+            }
+        });
+
+        btnAddGenre.setText("Add Genre");
+        btnAddGenre.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAddGenreActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(btnAddGenre)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnAdd)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnSearch)
@@ -138,7 +243,8 @@ public class Home extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnSearch)
-                    .addComponent(btnAdd))
+                    .addComponent(btnAdd)
+                    .addComponent(btnAddGenre))
                 .addContainerGap(456, Short.MAX_VALUE))
         );
 
@@ -160,13 +266,43 @@ public class Home extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+//    private void btnImageActionPerformed(java.awt.event.ActionEvent evt, int id){
+//        new Read().read(id, 1);
+//        this.dispose();
+//    }
+    
     private void btnLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogoutActionPerformed
         // TODO add your handling code here:
+        int confirm = JOptionPane.showConfirmDialog(null, "Apakah anda yakin?", "Logout", JOptionPane.OK_CANCEL_OPTION);
+        if(confirm == 0){
+            Logout.logout();
+            this.dispose();
+        }
     }//GEN-LAST:event_btnLogoutActionPerformed
 
     private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginActionPerformed
         // TODO add your handling code here:
+        new Login().setVisible(true);
+        this.dispose();
     }//GEN-LAST:event_btnLoginActionPerformed
+
+    private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
+        // TODO add your handling code here:
+        new Create().setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_btnAddActionPerformed
+
+    private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
+        // TODO add your handling code here:
+        new Search().setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_btnSearchActionPerformed
+
+    private void btnAddGenreActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddGenreActionPerformed
+        // TODO add your handling code here:
+        new CreateGenre().setVisible(true);
+        this.dispose();
+    }//GEN-LAST:event_btnAddGenreActionPerformed
 
     /**
      * @param args the command line arguments
@@ -205,6 +341,7 @@ public class Home extends javax.swing.JFrame {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnAdd;
+    private javax.swing.JButton btnAddGenre;
     private javax.swing.JButton btnLogin;
     private javax.swing.JButton btnLogout;
     private javax.swing.JButton btnSearch;

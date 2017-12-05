@@ -5,6 +5,18 @@
  */
 package moviedatabase;
 
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author Win8
@@ -14,8 +26,110 @@ public class Read extends javax.swing.JFrame {
     /**
      * Creates new form Read
      */
+    
+    private int id, out;
+    private String cover;
+    
     public Read() {
         initComponents();
+        if(Session.getStatus()){
+            btnLogout.setVisible(true);
+            btnLogin.setVisible(false);
+            if(Session.getRole()==1){
+                btnEdit.setVisible(true);
+                btnDelete.setVisible(true);
+            } else {
+                btnEdit.setVisible(false);
+                btnDelete.setVisible(false);
+            }
+        } else {
+            btnEdit.setVisible(false);
+            btnDelete.setVisible(false);
+            btnLogin.setVisible(true);
+            btnLogout.setVisible(false);
+        }
+    }
+    
+    public String movieGenre(int genre1, int genre2, int genre3, int genre4, int genre5){
+        String movieGenre = "";
+        String[] genre = new String[5];
+        int count = 0;
+        String sql = "SELECT * FROM Genre WHERE id = ? OR id = ? OR id = ? OR id = ? OR id = ?";
+        try{
+            Connection c = SQLiteJDBCDriverConnection.connect();
+            PreparedStatement ps = c.prepareStatement(sql);
+            ps.setInt(1, genre1);
+            ps.setInt(2, genre2);
+            ps.setInt(3, genre3);
+            ps.setInt(4, genre4);
+            ps.setInt(5, genre5);
+            ResultSet rs = ps.executeQuery();
+            while(rs.next()){
+                genre[count] = rs.getString("genre");
+                count++;
+            }
+        } catch (SQLException e){
+            System.out.println(e.getMessage());
+        }
+        
+        movieGenre = genre[0] + ", " + genre[1] + ", " + genre[2] + ", " + genre[3] + ", " + genre[4];
+        return movieGenre;
+    }
+    
+    public void read(int id, int out){
+        this.id = id;
+        this.out = out;
+        this.setVisible(true);
+        String sql = "SELECT * FROM Movie WHERE id = ?";
+        try{
+           Connection c = SQLiteJDBCDriverConnection.connect();
+           PreparedStatement ps = c.prepareStatement(sql);
+           ps.setInt(1, id);
+           ResultSet rs = ps.executeQuery();
+           while(rs.next()){
+                lblJudul.setText(rs.getString("judul"));
+                lblTahun.setText(rs.getString("tahun"));
+                String genre = movieGenre(rs.getInt("genre1"), rs.getInt("genre2"), rs.getInt("genre3"), rs.getInt("genre4"), rs.getInt("genre5"));
+                lblGenre.setText(genre);
+                lblSinopsis.setText(rs.getString("sinopsis"));
+                cover = "src/Cover/" + rs.getString("gambar");
+                viewImg("src/Cover/" + rs.getString("gambar"));
+            }
+        }catch (SQLException e){
+            System.out.println(e.getMessage());
+        }
+    }
+    
+    public void viewImg(String cover){
+        BufferedImage bimg = null;
+        try{
+            bimg = ImageIO.read(new File(cover));
+        } catch(IOException e){
+            System.out.println(e.getMessage());
+        }
+        Image img = bimg.getScaledInstance(lblPicture.getWidth(), lblPicture.getHeight(), Image.SCALE_SMOOTH);
+        ImageIcon ii = new ImageIcon(img);
+        lblPicture.setIcon(ii);
+    }
+    
+    public void delete(){
+        int confirm = JOptionPane.showConfirmDialog(this, "Apakah anda yakin?", "Delete", JOptionPane.OK_CANCEL_OPTION);
+        if(confirm == 0){
+            String sql = "DELETE FROM Movie WHERE id = ?";
+            try{
+                Connection c = SQLiteJDBCDriverConnection.connect();
+                PreparedStatement ps = c.prepareStatement(sql);
+                ps.setInt(1, id);
+                ps.executeUpdate();
+                File image = new File(cover);
+                image.delete();
+                JOptionPane.showMessageDialog(null, "Film berhasil dihapus");
+                new Home().setVisible(true);
+                this.dispose();
+            }catch(Exception e){
+                System.out.println(e.getMessage());
+            }
+        }
     }
 
     /**
@@ -149,10 +263,25 @@ public class Read extends javax.swing.JFrame {
         lblPicture.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
         btnCancel.setText("Cancel");
+        btnCancel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnCancelActionPerformed(evt);
+            }
+        });
 
         btnDelete.setText("Delete");
+        btnDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnDeleteActionPerformed(evt);
+            }
+        });
 
         btnEdit.setText("Edit");
+        btnEdit.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnEditActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -165,7 +294,7 @@ public class Read extends javax.swing.JFrame {
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, 70, Short.MAX_VALUE)
+                            .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(jLabel10, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
@@ -190,10 +319,10 @@ public class Read extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(lblJudul, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, 20, Short.MAX_VALUE))
+                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 20, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 20, Short.MAX_VALUE)
+                    .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 20, Short.MAX_VALUE)
                     .addComponent(lblTahun, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
@@ -233,11 +362,39 @@ public class Read extends javax.swing.JFrame {
 
     private void btnLoginActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLoginActionPerformed
         // TODO add your handling code here:
+        new Login().setVisible(true);
+        this.dispose();
     }//GEN-LAST:event_btnLoginActionPerformed
 
     private void btnLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogoutActionPerformed
         // TODO add your handling code here:
+        int confirm = JOptionPane.showConfirmDialog(null, "Apakah anda yakin?", "Logout", JOptionPane.OK_CANCEL_OPTION);
+        if(confirm == 0){
+            Logout.logout();
+            this.dispose();
+        }
     }//GEN-LAST:event_btnLogoutActionPerformed
+
+    private void btnCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelActionPerformed
+        // TODO add your handling code here:
+        if(out==1){
+            new Home().setVisible(true);
+            this.dispose();
+        }else if(out==2){
+            this.dispose();
+        }
+    }//GEN-LAST:event_btnCancelActionPerformed
+
+    private void btnDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDeleteActionPerformed
+        // TODO add your handling code here:
+        delete();
+    }//GEN-LAST:event_btnDeleteActionPerformed
+
+    private void btnEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditActionPerformed
+        // TODO add your handling code here:
+        new Update().read(id);
+        this.dispose();
+    }//GEN-LAST:event_btnEditActionPerformed
 
     /**
      * @param args the command line arguments

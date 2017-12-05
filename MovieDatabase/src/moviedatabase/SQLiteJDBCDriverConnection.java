@@ -8,6 +8,7 @@ package moviedatabase;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import javax.swing.JOptionPane;
  
 /**
  *
@@ -17,26 +18,18 @@ public class SQLiteJDBCDriverConnection {
      /**
      * Connect to a sample database
      */
-    public static void connect() {
-        Connection conn = null;
-        try {
-            // db parameters
-            String url = "jdbc:sqlite:src/MovieDatabase.db";
-            // create a connection to the database
-            conn = DriverManager.getConnection(url);
-            
-            System.out.println("Connection to SQLite has been established.");
-            
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-        } finally {
-            try {
-                if (conn != null) {
-                    conn.close();
-                }
-            } catch (SQLException ex) {
-                System.out.println(ex.getMessage());
+    private static Connection c = null;
+    
+    public static Connection connect(){
+        if(c==null){
+            try{
+                String s = "jdbc:sqlite:src/MovieDatabase.db";
+                c = DriverManager.getConnection(s);
+            }catch (SQLException e) {
+                System.out.println(e.getMessage());
+                JOptionPane.showMessageDialog(null, "Koneksi ke database gagal!");
             }
         }
+        return c;
     }
 }
