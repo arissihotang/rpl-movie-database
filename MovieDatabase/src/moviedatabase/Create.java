@@ -17,7 +17,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.imageio.ImageIO;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -32,8 +35,8 @@ public class Create extends javax.swing.JFrame {
      * Creates new form Create
      */
     
-    private int tahunRelease, genre1, genre2, genre3, genre4, genre5, rating;
-    private String judul, sinopsis, cover;
+    private int tahunRelease, durasi, genre1, genre2, genre3, genre4, genre5;
+    private String judul, sutradara, penulis, aktor, sinopsis, gambar = null;
     
     public Create() {
         initComponents();
@@ -43,16 +46,55 @@ public class Create extends javax.swing.JFrame {
         } else {
             btnLogout.setVisible(false);
         }
+        genre();
+        setExtendedState(java.awt.Frame.MAXIMIZED_BOTH);
     }
     
-    public boolean check(String judul, int tahunRelease){
-        String sql = "SELECT * FROM Movie WHERE judul = ? AND tahun = ?";
-        int count = 0;
+    public void genre(){
+        List<String> genre1 = new ArrayList<String>();
+        List<String> genre2 = new ArrayList<String>();
+        List<String> genre3 = new ArrayList<String>();
+        List<String> genre4 = new ArrayList<String>();
+        List<String> genre5 = new ArrayList<String>();
+        genre1.add("Genre 1");
+        genre2.add("Genre 2");
+        genre3.add("Genre 3");
+        genre4.add("Genre 4");
+        genre5.add("Genre 5");
+        String sql = "SELECT * FROM Genre";
+        Connection c = SQLiteJDBCDriverConnection.connect();
         try{
-           Connection c = SQLiteJDBCDriverConnection.connect();
+           PreparedStatement ps = c.prepareStatement(sql);
+           ResultSet rs = ps.executeQuery();
+           while(rs.next()){
+               if(rs.getInt("id")==0){
+                    continue;
+                }
+               genre1.add(rs.getString("genre"));
+               genre2.add(rs.getString("genre"));
+               genre3.add(rs.getString("genre"));
+               genre4.add(rs.getString("genre"));
+               genre5.add(rs.getString("genre"));
+           }
+        }catch(SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        cbxGenre1.setModel(new DefaultComboBoxModel(genre1.toArray()));
+        cbxGenre2.setModel(new DefaultComboBoxModel(genre2.toArray()));
+        cbxGenre3.setModel(new DefaultComboBoxModel(genre3.toArray()));
+        cbxGenre4.setModel(new DefaultComboBoxModel(genre4.toArray()));
+        cbxGenre5.setModel(new DefaultComboBoxModel(genre5.toArray()));
+    }
+    
+    public boolean check(String judul, int tahunRelease, int durasi){
+        String sql = "SELECT * FROM Movie WHERE judul = ? AND tahun = ? AND durasi = ?";
+        int count = 0;
+        Connection c = SQLiteJDBCDriverConnection.connect();
+        try{
            PreparedStatement ps = c.prepareStatement(sql);
            ps.setString(1, judul);
            ps.setInt(2, tahunRelease);
+           ps.setInt(3, durasi);
            ResultSet rs = ps.executeQuery();
            while(rs.next()){
                count++;
@@ -68,8 +110,8 @@ public class Create extends javax.swing.JFrame {
         return false;
     }
     
-    public void save(String judul, int tahunRelease, int genre1, int genre2, int genre3, int genre4, int genre5, String sinopsis, String cover, int rating) throws Exception{ 
-        File img = new File(cover);
+    public void add(String judul, int tahunRelease, int genre1, int genre2, int genre3, int genre4, int genre5, String sinopsis, int durasi, String sutradara, String penulis, String aktor, String gambar) throws Exception{ 
+        File img = new File(gambar);
         String path = "src/Image/" + img.getName();
         File newImg = new File(path);
         
@@ -93,11 +135,9 @@ public class Create extends javax.swing.JFrame {
             }catch(IOException e){
                 System.out.println(e.getMessage());
             }
-        
-        String sql = "INSERT INTO Movie(judul, tahun, genre1, genre2, genre3, genre4, genre5, sinopsis, gambar, rating) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        
+        String sql = "INSERT INTO Movie(judul, tahun, genre1, genre2, genre3, genre4, genre5, sinopsis, durasi, sutradara, penulis, aktor, gambar) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        Connection c = SQLiteJDBCDriverConnection.connect();
         try{
-            Connection c = SQLiteJDBCDriverConnection.connect();
             PreparedStatement ps = c.prepareStatement(sql);
             ps.setString(1, judul);
             ps.setInt(2, tahunRelease);
@@ -106,9 +146,12 @@ public class Create extends javax.swing.JFrame {
             ps.setInt(5, genre3);
             ps.setInt(6, genre4);
             ps.setInt(7, genre5);
-            ps.setString(8, sinopsis);
-            ps.setString(9, img.getName());
-            ps.setInt(10, rating);
+            ps.setInt(8, durasi);
+            ps.setString(9, sutradara);
+            ps.setString(10, penulis);
+            ps.setString(11, aktor);
+            ps.setString(12, sinopsis);
+            ps.setString(13, img.getName());
             ps.executeUpdate();
             JOptionPane.showMessageDialog(jPanel2, "Film berhasil ditambahkan");
             new Home().setVisible(true);
@@ -119,10 +162,10 @@ public class Create extends javax.swing.JFrame {
     }
     
     
-    public void viewImg(String cover){
+    public void viewImg(String gambar){
         BufferedImage bimg = null;
         try{
-            bimg = ImageIO.read(new File(cover));
+            bimg = ImageIO.read(new File(gambar));
         } catch(IOException e){
             System.out.println(e.getMessage());
         }
@@ -131,6 +174,23 @@ public class Create extends javax.swing.JFrame {
         lblPicture.setIcon(ii);
     }
 
+    public int getId(String genre){
+        int id = 0;
+        String sql = "SELECT id FROM Genre where genre = ?";
+        Connection c = SQLiteJDBCDriverConnection.connect();
+        try{
+           PreparedStatement ps = c.prepareStatement(sql);
+           ps.setString(1, genre);
+           ResultSet rs = ps.executeQuery();
+           while(rs.next()){
+               id = rs.getInt("id");
+           }
+        } catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+        return id;
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -163,10 +223,17 @@ public class Create extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         txtSinopsis = new javax.swing.JTextArea();
         jLabel10 = new javax.swing.JLabel();
-        btnSave = new javax.swing.JButton();
+        btnAdd = new javax.swing.JButton();
         btnCancel = new javax.swing.JButton();
-        cbxRating = new javax.swing.JComboBox<>();
         jLabel9 = new javax.swing.JLabel();
+        jLabel11 = new javax.swing.JLabel();
+        jLabel12 = new javax.swing.JLabel();
+        jLabel13 = new javax.swing.JLabel();
+        txtDurasi = new javax.swing.JTextField();
+        txtSutradara = new javax.swing.JTextField();
+        txtPenulis = new javax.swing.JTextField();
+        txtAktor = new javax.swing.JTextField();
+        jLabel14 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Movie Database");
@@ -246,20 +313,11 @@ public class Create extends javax.swing.JFrame {
         jLabel8.setText("Image");
         jLabel8.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
-        cbxGenre1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
-        cbxGenre2.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
-        cbxGenre3.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         cbxGenre3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cbxGenre3ActionPerformed(evt);
             }
         });
-
-        cbxGenre4.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
-        cbxGenre5.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
 
         btnChoose.setText("Choose");
         btnChoose.addActionListener(new java.awt.event.ActionListener() {
@@ -279,10 +337,10 @@ public class Create extends javax.swing.JFrame {
         jLabel10.setText("Sinopsis");
         jLabel10.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
-        btnSave.setText("Save");
-        btnSave.addActionListener(new java.awt.event.ActionListener() {
+        btnAdd.setText("Add");
+        btnAdd.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSaveActionPerformed(evt);
+                btnAddActionPerformed(evt);
             }
         });
 
@@ -293,9 +351,23 @@ public class Create extends javax.swing.JFrame {
             }
         });
 
-        cbxRating.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "-pilih-", "1", "2", "3", "4", "5" }));
+        jLabel9.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel9.setText("Durasi");
+        jLabel9.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
-        jLabel9.setText("Rating");
+        jLabel11.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel11.setText("Sutradara");
+        jLabel11.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+
+        jLabel12.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel12.setText("Penulis");
+        jLabel12.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+
+        jLabel13.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel13.setText("Aktor");
+        jLabel13.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+
+        jLabel14.setText("menit");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -305,6 +377,18 @@ public class Create extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel2Layout.createSequentialGroup()
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                            .addComponent(jLabel11, javax.swing.GroupLayout.DEFAULT_SIZE, 71, Short.MAX_VALUE)
+                            .addComponent(jLabel12, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel13, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addComponent(txtAktor)
+                                .addGap(2, 2, 2))
+                            .addComponent(txtSutradara)
+                            .addComponent(txtPenulis)))
+                    .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel10, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 71, Short.MAX_VALUE)
                             .addGroup(jPanel2Layout.createSequentialGroup()
@@ -312,7 +396,7 @@ public class Create extends javax.swing.JFrame {
                                     .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 70, Short.MAX_VALUE)
                                     .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addGap(0, 0, Short.MAX_VALUE))
+                                .addGap(0, 1, Short.MAX_VALUE))
                             .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -331,23 +415,25 @@ public class Create extends javax.swing.JFrame {
                                         .addComponent(cbxGenre4, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(cbxGenre5, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 379, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(cbxRating, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(0, 0, Short.MAX_VALUE))))
+                                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 379, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGap(0, 0, Short.MAX_VALUE))
+                            .addComponent(txtDurasi)))
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(jLabel8, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnChoose, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(lblPicture, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE))
-                        .addGap(176, 176, 176))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                        .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap())))
+                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel2Layout.createSequentialGroup()
+                            .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addComponent(jLabel8, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(btnChoose, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(lblPicture, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE))
+                            .addGap(176, 176, 176))
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                            .addComponent(btnAdd, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addContainerGap()))
+                    .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -384,13 +470,26 @@ public class Create extends javax.swing.JFrame {
                             .addComponent(jScrollPane1)))
                     .addComponent(lblPicture, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(cbxRating)
-                    .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                .addGap(161, 161, 161)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtDurasi, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtSutradara, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtPenulis, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtAktor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(83, 83, 83)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(btnAdd, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
@@ -428,7 +527,7 @@ public class Create extends javax.swing.JFrame {
         int result = jfc.showOpenDialog(jPanel1);
         if(result == JFileChooser.APPROVE_OPTION){
             temp = jfc.getSelectedFile().getAbsolutePath();
-            cover = temp;
+            gambar = temp;
 //            viewImg(cover);
         }
     }//GEN-LAST:event_btnChooseActionPerformed
@@ -443,32 +542,36 @@ public class Create extends javax.swing.JFrame {
         this.dispose();
     }//GEN-LAST:event_btnCancelActionPerformed
 
-    private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
+    private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
         // TODO add your handling code here:
         if(txtJudul.equals("") || txtTahun.getText().equals("") || (cbxGenre1.getSelectedIndex() == 0 && 
            cbxGenre2.getSelectedIndex() == 0 && cbxGenre3.getSelectedIndex() == 0 && 
            cbxGenre4.getSelectedIndex() == 0 && cbxGenre5.getSelectedIndex() == 0) && 
-           txtSinopsis.equals("") || cover == null || cbxRating.getSelectedIndex() == 0){
+           txtSinopsis.equals("") || gambar == null || txtDurasi.getText().equals("") || 
+           txtSutradara.equals("") || txtPenulis.equals("") || txtAktor.equals("")){
             JOptionPane.showMessageDialog(jPanel2, "Data film belum lengkap!");
         } else{
             boolean result = false;
             judul = txtJudul.getText();
             tahunRelease = Integer.parseInt(txtTahun.getText());
+            durasi = Integer.parseInt(txtDurasi.getText());
+            sutradara = txtSutradara.getText();
+            penulis = txtPenulis.getText();
+            aktor = txtAktor.getText();
             sinopsis = txtSinopsis.getText();
-            genre1 = cbxGenre1.getSelectedIndex();
-            genre2 = cbxGenre2.getSelectedIndex();
-            genre3 = cbxGenre3.getSelectedIndex();
-            genre4 = cbxGenre1.getSelectedIndex();
-            genre5 = cbxGenre2.getSelectedIndex();
-            rating = cbxRating.getSelectedIndex();
+            genre1 = getId((String) cbxGenre1.getSelectedItem());
+            genre2 = getId((String) cbxGenre2.getSelectedItem());
+            genre3 = getId((String) cbxGenre3.getSelectedItem());
+            genre4 = getId((String) cbxGenre4.getSelectedItem());
+            genre5 = getId((String) cbxGenre5.getSelectedItem());
             try{
-                result = check(judul, tahunRelease);
+                result = check(judul, tahunRelease, durasi);
             }catch (Exception e) {
                 System.out.println(e.getMessage());
             }
             if(result){
                 try{
-                    save(judul, tahunRelease, genre1, genre2, genre3, genre4, genre5, sinopsis, cover, rating);
+                    add(judul, tahunRelease, genre1, genre2, genre3, genre4, genre5, sinopsis, durasi, sutradara, penulis, aktor, gambar);
                 }catch (Exception e) {
                     System.out.println(e.getMessage());
                 }
@@ -476,7 +579,7 @@ public class Create extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(jPanel2, "Film sudah ada!");
             }
         }
-    }//GEN-LAST:event_btnSaveActionPerformed
+    }//GEN-LAST:event_btnAddActionPerformed
 
     /**
      * @param args the command line arguments
@@ -514,18 +617,21 @@ public class Create extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAdd;
     private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnChoose;
     private javax.swing.JButton btnLogout;
-    private javax.swing.JButton btnSave;
     private javax.swing.JComboBox cbxGenre1;
     private javax.swing.JComboBox cbxGenre2;
     private javax.swing.JComboBox cbxGenre3;
     private javax.swing.JComboBox cbxGenre4;
     private javax.swing.JComboBox cbxGenre5;
-    private javax.swing.JComboBox<String> cbxRating;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
@@ -538,8 +644,12 @@ public class Create extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblPicture;
     private javax.swing.JLabel lblUser;
+    private javax.swing.JTextField txtAktor;
+    private javax.swing.JTextField txtDurasi;
     private javax.swing.JTextField txtJudul;
+    private javax.swing.JTextField txtPenulis;
     private javax.swing.JTextArea txtSinopsis;
+    private javax.swing.JTextField txtSutradara;
     private javax.swing.JTextField txtTahun;
     // End of variables declaration//GEN-END:variables
 }
