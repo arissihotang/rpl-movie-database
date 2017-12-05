@@ -5,6 +5,8 @@
  */
 package moviedatabase;
 
+import javax.swing.UIManager;
+
 /**
  *
  * @author Win8
@@ -15,6 +17,11 @@ public class Home extends javax.swing.JFrame {
      * Creates new form Home
      */
     public Home() {
+        try {
+            UIManager.setLookAndFeel("com.jtattoo.plaf.smart.SmartLookAndFeel");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         initComponents();
     }
 
