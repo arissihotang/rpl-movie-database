@@ -37,25 +37,25 @@ public class Genre extends javax.swing.JFrame {
      */
     
     private int id;
-    private boolean check;
+    private boolean check = false;
     Map<Integer, JButton> btnGenre = new HashMap<Integer, JButton>();
     
     public Genre(boolean check) {
         initComponents();
         this.check = check;
         
-        if(Session.getStatus()){
+        if(Session.getStatus()) {
             lblUser.setText(Session.getUsername());
             btnLogout.setVisible(true);
-        } else {
+        }else {
             btnLogout.setVisible(false);
         }
-        if(check){
+        if(check) {
             tglDelete.setSelected(true);
             txtAdd.setEditable(false);
             btnAdd.setEnabled(false);
             btnEdit.setEnabled(false);
-        } else{
+        }else {
             tglDelete.setSelected(false);
             txtAdd.setEditable(true);
             btnAdd.setEnabled(true);
@@ -63,17 +63,18 @@ public class Genre extends javax.swing.JFrame {
         }
         txtEdit.setEditable(false);
         showGenre();
+        setExtendedState(java.awt.Frame.MAXIMIZED_BOTH);
     }
     
     public void showGenre(){
         String sql = "SELECT * FROM Genre";
         pnlGenre.setLayout(new WrapLayout());
-        try{
-            Connection conn = SQLiteJDBCDriverConnection.connect();
-            Statement s = conn.createStatement();
+        Connection c = SQLiteJDBCDriverConnection.connect();
+        try {
+            Statement s = c.createStatement();
             ResultSet rs = s.executeQuery(sql);
-            while(rs.next()){
-                if(rs.getInt("id")==0){
+            while(rs.next()) {
+                if(rs.getInt("id")==0) {
                     continue;
                 }
                 int id = rs.getInt("id");                
@@ -85,14 +86,14 @@ public class Genre extends javax.swing.JFrame {
                     }
                 });
             }
-        } catch(SQLException e){
+        }catch(SQLException e) {
             System.out.println(e.getMessage());
         }
         showButton();
     }
     
     public void showButton(){    
-        if(this.check){
+        if(this.check) {
             tglDelete.setText("Cancel");
             for(int key : btnGenre.keySet()){
                 btnGenre.get(key).setText("-" + btnGenre.get(key).getText() + "-");
@@ -105,7 +106,7 @@ public class Genre extends javax.swing.JFrame {
                     }
                 });
             }
-        }else{
+        }else {
             tglDelete.setText("Delete");
             for(int key : btnGenre.keySet()){
                 btnGenre.get(key).setVerticalTextPosition(SwingConstants.BOTTOM);
@@ -124,9 +125,9 @@ public class Genre extends javax.swing.JFrame {
         String sql;
         if(index==1){
             sql = "UPDATE Movie SET genre1 = 0 WHERE id = ?";
-            Connection conn = SQLiteJDBCDriverConnection.connect();
+            Connection c = SQLiteJDBCDriverConnection.connect();
             try {
-                PreparedStatement ps = conn.prepareStatement(sql);
+                PreparedStatement ps = c.prepareStatement(sql);
                 ps.setInt(1, id);   
                 ps.executeUpdate();
             } catch(SQLException e){
@@ -134,9 +135,9 @@ public class Genre extends javax.swing.JFrame {
             }
         }else if(index==2){
             sql = "UPDATE Movie SET genre2 = 0 WHERE id = ?";
-            Connection conn = SQLiteJDBCDriverConnection.connect();
+            Connection c = SQLiteJDBCDriverConnection.connect();
             try {
-                PreparedStatement ps = conn.prepareStatement(sql);
+                PreparedStatement ps = c.prepareStatement(sql);
                 ps.setInt(1, id);   
                 ps.executeUpdate();
             } catch(SQLException e){
@@ -144,9 +145,9 @@ public class Genre extends javax.swing.JFrame {
             }
         }else if(index==3){
             sql = "UPDATE Movie SET genre3 = 0 WHERE id = ?";
-            Connection conn = SQLiteJDBCDriverConnection.connect();
+            Connection c = SQLiteJDBCDriverConnection.connect();
             try {
-                PreparedStatement ps = conn.prepareStatement(sql);
+                PreparedStatement ps = c.prepareStatement(sql);
                 ps.setInt(1, id);   
                 ps.executeUpdate();
             } catch(SQLException e){
@@ -154,9 +155,9 @@ public class Genre extends javax.swing.JFrame {
             }
         }else if(index==4){
             sql = "UPDATE Movie SET genre4 = 0 WHERE id = ?";
-            Connection conn = SQLiteJDBCDriverConnection.connect();
+            Connection c = SQLiteJDBCDriverConnection.connect();
             try {
-                PreparedStatement ps = conn.prepareStatement(sql);
+                PreparedStatement ps = c.prepareStatement(sql);
                 ps.setInt(1, id);   
                 ps.executeUpdate();
             } catch(SQLException e){
@@ -164,9 +165,9 @@ public class Genre extends javax.swing.JFrame {
             }
         }else if(index==5){
             sql = "UPDATE Movie SET genre5 = 0 WHERE id = ?";
-            Connection conn = SQLiteJDBCDriverConnection.connect();
+            Connection c = SQLiteJDBCDriverConnection.connect();
             try {
-                PreparedStatement ps = conn.prepareStatement(sql);
+                PreparedStatement ps = c.prepareStatement(sql);
                 ps.setInt(1, id);   
                 ps.executeUpdate();
             } catch(SQLException e){
@@ -177,9 +178,9 @@ public class Genre extends javax.swing.JFrame {
     
     public void checkMovie(int id){
         String sql = "SELECT * FROM Movie";
+        Connection c = SQLiteJDBCDriverConnection.connect();
         try {
-            Connection conn = SQLiteJDBCDriverConnection.connect();
-            Statement s = conn.createStatement();
+            Statement s = c.createStatement();
             ResultSet rs = s.executeQuery(sql);
             while(rs.next()){
                 if(rs.getInt("genre1")==id){
@@ -202,17 +203,17 @@ public class Genre extends javax.swing.JFrame {
     public boolean checkGenre(String genre){
         String sql = "SELECT * FROM Genre WHERE genre = ?";
         int count = 0;
-        try{
-           Connection c = SQLiteJDBCDriverConnection.connect();
+        Connection c = SQLiteJDBCDriverConnection.connect();
+        try {
            PreparedStatement ps = c.prepareStatement(sql);
            ps.setString(1, genre);
            ResultSet rs = ps.executeQuery();
-           while(rs.next()){
+           while(rs.next()) {
                count++;
            }
-           if(count == 0){
+           if(count == 0) {
                return true;
-           } else {
+           }else {
                return false;
            }
         }catch(SQLException e) {
@@ -221,10 +222,10 @@ public class Genre extends javax.swing.JFrame {
         return false;
     }
     
-    public void save(String genre){ 
+    public void add(String genre){ 
         String sql = "INSERT INTO Genre(genre) VALUES(?)";
-        try {
-            Connection c = SQLiteJDBCDriverConnection.connect();
+        Connection c = SQLiteJDBCDriverConnection.connect();
+        try {    
             PreparedStatement ps = c.prepareStatement(sql);
             ps.setString(1, genre);
             ps.executeUpdate();
@@ -239,13 +240,13 @@ public class Genre extends javax.swing.JFrame {
 
     public void edit(String genre){
         String sql = "UPDATE Genre SET genre = ? WHERE id = ?";
-        Connection conn = SQLiteJDBCDriverConnection.connect();
+        Connection c = SQLiteJDBCDriverConnection.connect();
         try {
-            PreparedStatement ps = conn.prepareStatement(sql);
+            PreparedStatement ps = c.prepareStatement(sql);
             ps.setString(1, genre);   
-            ps.setInt(2, id);
+            ps.setInt(2, this.id);
             ps.executeUpdate();
-            JOptionPane.showMessageDialog(jPanel2, "Genre berhasil diedit"); 
+            JOptionPane.showMessageDialog(pnlGenre, "Genre berhasil diedit"); 
             txtEdit.setText("");
             new Genre(false).setVisible(true);
             this.dispose();
@@ -387,6 +388,11 @@ public class Genre extends javax.swing.JFrame {
         );
 
         tglDelete.setText("Delete");
+        tglDelete.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                tglDeleteActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -469,15 +475,15 @@ public class Genre extends javax.swing.JFrame {
     private void btnGenreActionPerformed(java.awt.event.ActionEvent evt, int id){
         String sql = "SELECT * FROM Genre WHERE id = ? ";        
         String genre = null;
-        Connection conn = SQLiteJDBCDriverConnection.connect();
-        try{
-            PreparedStatement ps = conn.prepareStatement(sql);
+        Connection c = SQLiteJDBCDriverConnection.connect();
+        try {
+            PreparedStatement ps = c.prepareStatement(sql);
             ps.setInt(1, id);           
             ResultSet rs = ps.executeQuery();
             while(rs.next()){
                 genre = rs.getString("genre");
             }           
-        } catch(SQLException e){
+        }catch(SQLException e) {
             System.out.println(e.getMessage());
         }
         txtEdit.setEditable(true);
@@ -486,19 +492,19 @@ public class Genre extends javax.swing.JFrame {
     }
     
     private void btnGenreActionPerformedDelete(java.awt.event.ActionEvent evt, int id){
-        int confirm = JOptionPane.showConfirmDialog(pnlGenre, "Apakah anda yakin?", "Confirm delete", JOptionPane.OK_CANCEL_OPTION);
-        if(confirm == 0){
+        int confirm = JOptionPane.showConfirmDialog(pnlGenre, "Apakah anda yakin?", "Delete", JOptionPane.OK_CANCEL_OPTION);
+        if(confirm == 0) {
             checkMovie(id);
             String sql = "DELETE FROM Genre WHERE id = ?";
-            try{
-                Connection conn = SQLiteJDBCDriverConnection.connect();
-                PreparedStatement ps = conn.prepareStatement(sql);
+            try {
+                Connection c = SQLiteJDBCDriverConnection.connect();
+                PreparedStatement ps = c.prepareStatement(sql);
                 ps.setInt(1, id);
                 ps.executeUpdate();
                 JOptionPane.showMessageDialog(null, "Genre berhasil dihapus");
                 new Genre(true).setVisible(true);
                 this.dispose();
-            }catch(Exception e){
+            }catch(Exception e) {
                 System.out.println(e.getMessage());
             }
         }
@@ -521,31 +527,52 @@ public class Genre extends javax.swing.JFrame {
 
     private void btnAddActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddActionPerformed
         // TODO add your handling code here:
-        if(txtAdd.equals("")){
-        JOptionPane.showMessageDialog(jPanel2, "Data masih kosong!");
-        }else{
-            boolean result = false;
-            genre = txtAdd.getText();
-            try{
-                result = check(genre);
-            }catch (Exception e) {
-                System.out.println(e.getMessage());
-            }
-            if(result){
-                try{
-                    save(genre);
-                }catch (Exception e) {
-                    System.out.println(e.getMessage());
-                }
-            }else{
-                JOptionPane.showMessageDialog(jPanel2, "Genre sudah ada!");
+        String genre = txtAdd.getText();
+        if(genre=="") {
+            JOptionPane.showMessageDialog(null, "data masih kosong");
+        }else if(genre.length() < 4) {
+            JOptionPane.showMessageDialog(null, "genre minimal 4 huruf");            
+        }else if(genre.length() > 10) {
+            JOptionPane.showMessageDialog(null, "genre maksimal 10 huruf");
+        }else {            
+            if(checkGenre(genre)==true) {
+                add(genre);                                                
+            }else {
+                JOptionPane.showMessageDialog(null, "genre telah ada");
             }
         }
     }//GEN-LAST:event_btnAddActionPerformed
 
     private void btnEditActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEditActionPerformed
         // TODO add your handling code here:
+        String genre = txtEdit.getText();
+        if(genre=="") {
+            JOptionPane.showMessageDialog(null, "data masih kosong");
+        }else if(genre.length() < 4) {
+            JOptionPane.showMessageDialog(null, "genre minimal 4 huruf");            
+        }else if(genre.length() > 10) {
+            JOptionPane.showMessageDialog(null, "genre maksimal 10 huruf");
+        }else {            
+            if(checkGenre(genre)==true) {
+                edit(genre);                                                
+            }else {
+                JOptionPane.showMessageDialog(null, "genre telah ada");
+            }
+        }
     }//GEN-LAST:event_btnEditActionPerformed
+
+    private void tglDeleteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_tglDeleteActionPerformed
+        // TODO add your handling code here:
+        if(tglDelete.isSelected()){
+            this.check = true;
+            new Genre(true).setVisible(true);
+            this.dispose();
+        } else {
+            this.check = false;
+            new Genre(false).setVisible(true);
+            this.dispose();
+        }
+    }//GEN-LAST:event_tglDeleteActionPerformed
 
     /**
      * @param args the command line arguments
@@ -577,7 +604,7 @@ public class Genre extends javax.swing.JFrame {
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             public void run() {
-                new Genre().setVisible(true);
+                new Genre(false).setVisible(true);
             }
         });
     }
