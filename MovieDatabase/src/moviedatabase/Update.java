@@ -17,7 +17,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.imageio.ImageIO;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -27,68 +30,112 @@ import javax.swing.JOptionPane;
  * @author Win8
  */
 public class Update extends javax.swing.JFrame {
-
+    private int id, tahunRelease, durasi, genre1, genre2, genre3, genre4, genre5;
+    private String judul, sutradara, penulis, aktor, sinopsis, gambar = null, newgambar = null;
+    private String genreName1, genreName2, genreName3, genreName4, genreName5;
     /**
      * Creates new form Update
      */
-    
-    private int id, tahunRelease, genre1, genre2, genre3, genre4, genre5;
-    private String judul, sinopsis, cover;
-    
     public Update() {
         initComponents();
         if(Session.getStatus()){
+            lblUser.setText(Session.getUsername());
             btnLogout.setVisible(true);
         } else {
             btnLogout.setVisible(false);
         }
+        genre();
+        setExtendedState(java.awt.Frame.MAXIMIZED_BOTH);
     }
-
+    
+    public void genre(){
+        List<String> genre1 = new ArrayList<String>();
+        List<String> genre2 = new ArrayList<String>();
+        List<String> genre3 = new ArrayList<String>();
+        List<String> genre4 = new ArrayList<String>();
+        List<String> genre5 = new ArrayList<String>();
+        genre1.add("Genre 1");
+        genre2.add("Genre 2");
+        genre3.add("Genre 3");
+        genre4.add("Genre 4");
+        genre5.add("Genre 5");
+        String sql = "SELECT * FROM Genre";
+        Connection c = SQLiteJDBCDriverConnection.connect();
+        try{
+           PreparedStatement ps = c.prepareStatement(sql);
+           ResultSet rs = ps.executeQuery();
+           while(rs.next()){
+               if(rs.getInt("id")==0){
+                    continue;
+                }
+               genre1.add(rs.getString("genre"));
+               genre2.add(rs.getString("genre"));
+               genre3.add(rs.getString("genre"));
+               genre4.add(rs.getString("genre"));
+               genre5.add(rs.getString("genre"));
+           }
+        }catch(SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        cbxGenre1.setModel(new DefaultComboBoxModel(genre1.toArray()));
+        cbxGenre2.setModel(new DefaultComboBoxModel(genre2.toArray()));
+        cbxGenre3.setModel(new DefaultComboBoxModel(genre3.toArray()));
+        cbxGenre4.setModel(new DefaultComboBoxModel(genre4.toArray()));
+        cbxGenre5.setModel(new DefaultComboBoxModel(genre5.toArray()));
+    }
+    
     public void read(int id){
         this.id = id;
         this.setVisible(true);
         String sql = "SELECT * FROM Movie WHERE id = ?";
-        try{
-           Connection c = SQLiteJDBCDriverConnection.connect();
+        Connection c = SQLiteJDBCDriverConnection.connect();
+        try{   
            PreparedStatement ps = c.prepareStatement(sql);
            ps.setInt(1, id);
            ResultSet rs = ps.executeQuery();
            while(rs.next()){
                 judul = rs.getString("judul");
                 tahunRelease = rs.getInt("tahun");
-                genre1 = rs.getInt("genre1");
-                genre2 = rs.getInt("genre2");
-                genre3 = rs.getInt("genre3");
-                genre4 = rs.getInt("genre4");
-                genre5 = rs.getInt("genre5");
+                genreName1 = getGenre(rs.getInt("genre1"));
+                genreName2 = getGenre(rs.getInt("genre2"));
+                genreName3 = getGenre(rs.getInt("genre3"));
+                genreName4 = getGenre(rs.getInt("genre4"));
+                genreName5 = getGenre(rs.getInt("genre5"));
                 sinopsis = rs.getString("sinopsis");
-                cover = "src/Image/" + rs.getString("gambar");
+                durasi = rs.getInt("durasi");
+                newgambar = "src/Image/" + rs.getString("gambar");
+                gambar = newgambar;
                 txtJudul.setText(judul);
                 txtTahun.setText(Integer.toString(tahunRelease));
-                cbxGenre1.setSelectedIndex(genre1);
-                cbxGenre2.setSelectedIndex(genre2);
-                cbxGenre3.setSelectedIndex(genre3);
-                cbxGenre3.setSelectedIndex(genre4);
-                cbxGenre3.setSelectedIndex(genre5);
+                cbxGenre1.setSelectedItem(genreName1);
+                cbxGenre2.setSelectedItem(genreName2);
+                cbxGenre3.setSelectedItem(genreName3);
+                cbxGenre4.setSelectedItem(genreName4);
+                cbxGenre5.setSelectedItem(genreName5);
                 txtSinopsis.setText(sinopsis);
-                viewImg(cover);
-                lblPicture.setText("File path: "+cover);
+                txtDurasi.setText(Integer.toString(durasi));
+                txtSutradara.setText(sutradara);
+                txtPenulis.setText(penulis);
+                txtAktor.setText(aktor);
+                viewImg(gambar);
             }
         } catch (SQLException e){
             System.out.println(e.getMessage());
         }
     }
     
-    public boolean save(int id, String judul, int tahunRelease, int genre1, int genre2, int genre3, int genre4, int genre5, String sinopsis, String cover) throws Exception{  
-        File img = new File(cover);
-        String path = "src/Cover/" + img.getName();
+    public boolean update(int id, String judul, int tahunRelease, int genre1, int genre2, int genre3, int genre4, int genre5, String sinopsis, int durasi, String sutradara, String penulis, String aktor, String gambar) throws Exception{  
+        File img = new File(gambar);
+        String path = "src/Image/" + img.getName();
         File newImg = new File(path);
         
         InputStream inStream = null;
         OutputStream outStream = null;
         boolean result = false;
         
-        if(!cover.equals(path)){
+        if(!newgambar.equals(path)){
+            File del = new File(newgambar);
+            del.delete();
             try{
                 byte[] buffer = new byte[1024];
                 int length;
@@ -105,13 +152,11 @@ public class Update extends javax.swing.JFrame {
             } catch(IOException e){
                 System.out.println(e.getMessage());
             }
-        }else{
-            path = cover;
         }
         
-        String sql = "UPDATE Movie SET judul = ?, tahun = ?, genre1 = ?, genre2 = ?, genre3 = ?, genre4 = ?, genre5 = ?, sinopsis = ?, gambar = ? WHERE id = ?";
-        try {
-            Connection c = SQLiteJDBCDriverConnection.connect();
+        String sql = "UPDATE Movie SET judul = ?, tahun = ?, genre1 = ?, genre2 = ?, genre3 = ?, genre4 = ?, genre5 = ?, sinopsis = ?, durasi = ?, sutradara = ?, penulis = ?, aktor = ?, gambar = ? WHERE id = ?";
+        Connection c = SQLiteJDBCDriverConnection.connect();
+        try {    
             PreparedStatement ps = c.prepareStatement(sql);
             ps.setString(1, judul);
             ps.setInt(2, tahunRelease);
@@ -121,8 +166,12 @@ public class Update extends javax.swing.JFrame {
             ps.setInt(6, genre4);
             ps.setInt(7, genre5);
             ps.setString(8, sinopsis);
-            ps.setString(9, img.getName());
-            ps.setInt(10, id);
+            ps.setInt(9, durasi);
+            ps.setString(10, sutradara);
+            ps.setString(11, penulis);
+            ps.setString(12, aktor);
+            ps.setString(13, img.getName());
+            ps.setInt(14, id);
             ps.executeUpdate();
             return true;
             }catch (SQLException e) {
@@ -143,6 +192,40 @@ public class Update extends javax.swing.JFrame {
         lblPicture.setIcon(ii);
     }
     
+    public int getId(String genre){
+        int id = 0;
+        String sql = "SELECT id FROM Genre WHERE genre = ?";
+        Connection c = SQLiteJDBCDriverConnection.connect();
+        try{
+           PreparedStatement ps = c.prepareStatement(sql);
+           ps.setString(1, genre);
+           ResultSet rs = ps.executeQuery();
+           while(rs.next()){
+               id = rs.getInt("id");
+           }
+        } catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+        return id;
+    }
+    
+    public String getGenre(int id){
+        String genre = "";
+        String sql = "SELECT genre FROM Genre WHERE id = ?";
+        Connection c = SQLiteJDBCDriverConnection.connect();
+        try{
+           PreparedStatement Ps = c.prepareStatement(sql);
+           Ps.setInt(1, id);
+           ResultSet rs = Ps.executeQuery();
+           while(rs.next()){
+               genre = rs.getString("genre");
+           }
+        } catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+        return genre;
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -154,43 +237,51 @@ public class Update extends javax.swing.JFrame {
 
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
+        lblUser = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         btnLogout = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jLabel4 = new javax.swing.JLabel();
+        txtJudul = new javax.swing.JTextField();
         jLabel5 = new javax.swing.JLabel();
         jLabel6 = new javax.swing.JLabel();
-        jLabel10 = new javax.swing.JLabel();
-        txtJudul = new javax.swing.JTextField();
+        jLabel7 = new javax.swing.JLabel();
+        jLabel8 = new javax.swing.JLabel();
         txtTahun = new javax.swing.JTextField();
         cbxGenre1 = new javax.swing.JComboBox();
         cbxGenre2 = new javax.swing.JComboBox();
         cbxGenre3 = new javax.swing.JComboBox();
         cbxGenre4 = new javax.swing.JComboBox();
         cbxGenre5 = new javax.swing.JComboBox();
-        jLabel7 = new javax.swing.JLabel();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        txtSinopsis = new javax.swing.JTextArea();
-        jLabel8 = new javax.swing.JLabel();
         btnChoose = new javax.swing.JButton();
         lblPicture = new javax.swing.JLabel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        txtSinopsis = new javax.swing.JTextArea();
+        jLabel10 = new javax.swing.JLabel();
+        btnUpdate = new javax.swing.JButton();
         btnCancel = new javax.swing.JButton();
-        btnSave = new javax.swing.JButton();
+        jLabel9 = new javax.swing.JLabel();
+        jLabel11 = new javax.swing.JLabel();
+        jLabel12 = new javax.swing.JLabel();
+        jLabel13 = new javax.swing.JLabel();
+        txtDurasi = new javax.swing.JTextField();
+        txtSutradara = new javax.swing.JTextField();
+        txtPenulis = new javax.swing.JTextField();
+        txtAktor = new javax.swing.JTextField();
+        jLabel14 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Movie Database");
-        setResizable(false);
 
         jPanel1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Image/brainware.png"))); // NOI18N
 
-        jLabel2.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel2.setText("User");
-        jLabel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        lblUser.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        lblUser.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblUser.setText("User");
+        lblUser.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
         jLabel3.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -213,8 +304,8 @@ public class Update extends javax.swing.JFrame {
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, 625, Short.MAX_VALUE)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, 644, Short.MAX_VALUE)
+                    .addComponent(lblUser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btnLogout)
                 .addContainerGap())
@@ -226,7 +317,7 @@ public class Update extends javax.swing.JFrame {
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(lblUser, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(jPanel1Layout.createSequentialGroup()
@@ -249,34 +340,17 @@ public class Update extends javax.swing.JFrame {
         jLabel6.setText("Genre");
         jLabel6.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
-        jLabel10.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel10.setText("Sinopsis");
-        jLabel10.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        jLabel7.setText("pilih minimal 1");
 
-        cbxGenre1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        jLabel8.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel8.setText("Image");
+        jLabel8.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
-        cbxGenre2.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
-        cbxGenre3.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
         cbxGenre3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 cbxGenre3ActionPerformed(evt);
             }
         });
-
-        cbxGenre4.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
-        cbxGenre5.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
-        jLabel7.setText("pilih minimal 1");
-
-        txtSinopsis.setColumns(20);
-        txtSinopsis.setRows(5);
-        jScrollPane1.setViewportView(txtSinopsis);
-
-        jLabel8.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel8.setText("Image");
-        jLabel8.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
         btnChoose.setText("Choose");
         btnChoose.addActionListener(new java.awt.event.ActionListener() {
@@ -288,6 +362,21 @@ public class Update extends javax.swing.JFrame {
         lblPicture.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         lblPicture.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
+        txtSinopsis.setColumns(20);
+        txtSinopsis.setRows(5);
+        jScrollPane1.setViewportView(txtSinopsis);
+
+        jLabel10.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel10.setText("Sinopsis");
+        jLabel10.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+
+        btnUpdate.setText("Update");
+        btnUpdate.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnUpdateActionPerformed(evt);
+            }
+        });
+
         btnCancel.setText("Cancel");
         btnCancel.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -295,12 +384,29 @@ public class Update extends javax.swing.JFrame {
             }
         });
 
-        btnSave.setText("Save");
-        btnSave.addActionListener(new java.awt.event.ActionListener() {
+        jLabel9.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel9.setText("Durasi");
+        jLabel9.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+
+        jLabel11.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel11.setText("Sutradara");
+        jLabel11.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+
+        jLabel12.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel12.setText("Penulis");
+        jLabel12.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+
+        jLabel13.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        jLabel13.setText("Aktor");
+        jLabel13.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+
+        txtSutradara.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnSaveActionPerformed(evt);
+                txtSutradaraActionPerformed(evt);
             }
         });
+
+        jLabel14.setText("menit");
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -311,13 +417,12 @@ public class Update extends javax.swing.JFrame {
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel2Layout.createSequentialGroup()
-                                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                    .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 70, Short.MAX_VALUE)
-                                    .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                                .addGap(0, 1, Short.MAX_VALUE))
-                            .addComponent(jLabel10, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 71, Short.MAX_VALUE))
+                            .addComponent(jLabel10, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)
+                            .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addComponent(jLabel5, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)
+                                .addComponent(jLabel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(jLabel4, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                            .addComponent(jLabel9, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(txtJudul)
@@ -336,21 +441,37 @@ public class Update extends javax.swing.JFrame {
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                         .addComponent(cbxGenre5, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE))
                                     .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 379, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(0, 0, Short.MAX_VALUE))))
+                                .addGap(0, 1, Short.MAX_VALUE))
+                            .addComponent(txtDurasi)))
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                            .addComponent(jLabel8, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(btnChoose, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(lblPicture, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE))
-                        .addGap(176, 176, 176))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                        .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap())))
+                            .addComponent(jLabel12, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addComponent(jLabel11, javax.swing.GroupLayout.DEFAULT_SIZE, 89, Short.MAX_VALUE)
+                            .addComponent(jLabel13, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(6, 6, 6)
+                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addComponent(txtAktor)
+                                .addGap(2, 2, 2))
+                            .addComponent(txtPenulis)
+                            .addComponent(txtSutradara))
+                        .addGap(332, 332, 332)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(jPanel2Layout.createSequentialGroup()
+                            .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addComponent(jLabel8, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(btnChoose, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(lblPicture, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, 150, Short.MAX_VALUE))
+                            .addGap(176, 176, 176))
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                            .addComponent(btnUpdate, javax.swing.GroupLayout.PREFERRED_SIZE, 70, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addContainerGap()))
+                    .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 148, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -381,13 +502,32 @@ public class Update extends javax.swing.JFrame {
                         .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(jPanel2Layout.createSequentialGroup()
+                                .addComponent(jLabel10, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(0, 0, Short.MAX_VALUE))
                             .addComponent(jScrollPane1)))
                     .addComponent(lblPicture, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(196, 196, 196)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel9, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtDurasi, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel14, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel11, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtSutradara, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel12, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtPenulis, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel13, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtAktor, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(83, 83, 83)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(btnCancel, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnSave, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(btnUpdate, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
@@ -403,7 +543,8 @@ public class Update extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGap(9, 9, 9))
         );
 
         pack();
@@ -426,51 +567,60 @@ public class Update extends javax.swing.JFrame {
         // TODO add your handling code here:
         JFileChooser jfc = new JFileChooser();
         String temp;
-        int result = jfc.showOpenDialog(jPanel1);
+        int result = jfc.showOpenDialog(jPanel2);
         if(result == JFileChooser.APPROVE_OPTION){
             temp = jfc.getSelectedFile().getAbsolutePath();
-            cover = temp;
-//            viewImg(cover);
+            gambar = temp;
+            viewImg(gambar);
         }
     }//GEN-LAST:event_btnChooseActionPerformed
 
-    private void btnCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelActionPerformed
-        // TODO add your handling code here:
-//        new Read().read(id, 1);
-        this.dispose();
-    }//GEN-LAST:event_btnCancelActionPerformed
-
-    private void btnSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSaveActionPerformed
-        // TODO add your handling code here:
-        if(txtJudul.equals("") || txtTahun.getText().equals("") || (cbxGenre1.getSelectedIndex() == 0 && 
-           cbxGenre2.getSelectedIndex() == 0 && cbxGenre3.getSelectedIndex() == 0 && 
-           cbxGenre4.getSelectedIndex() == 0 && cbxGenre5.getSelectedIndex() == 0) && 
-           txtSinopsis.equals("") || cover == null){
-            JOptionPane.showMessageDialog(jPanel1, "Data film belum lengkap!");
+    private void btnUpdateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnUpdateActionPerformed
+        // TODO add your handling colblUser:
+        if(txtJudul.equals("") || txtTahun.getText().equals("") || (cbxGenre1.getSelectedIndex() == 0 &&
+            cbxGenre2.getSelectedIndex() == 0 && cbxGenre3.getSelectedIndex() == 0 &&
+            cbxGenre4.getSelectedIndex() == 0 && cbxGenre5.getSelectedIndex() == 0) &&
+            txtSinopsis.equals("") || gambar == null || txtDurasi.getText().equals("") ||
+            txtSutradara.equals("") || txtPenulis.equals("") || txtAktor.equals("")){
+        JOptionPane.showMessageDialog(jPanel2, "Data film belum lengkap!");
         } else{
             boolean result = false;
             judul = txtJudul.getText();
             tahunRelease = Integer.parseInt(txtTahun.getText());
+            durasi = Integer.parseInt(txtDurasi.getText());
+            sutradara = txtSutradara.getText();
+            penulis = txtPenulis.getText();
+            aktor = txtAktor.getText();
             sinopsis = txtSinopsis.getText();
-            genre1 = cbxGenre1.getSelectedIndex();
-            genre2 = cbxGenre2.getSelectedIndex();
-            genre3 = cbxGenre3.getSelectedIndex();
-            genre4 = cbxGenre4.getSelectedIndex();
-            genre5 = cbxGenre5.getSelectedIndex();
+            genre1 = getId((String) cbxGenre1.getSelectedItem());
+            genre2 = getId((String) cbxGenre2.getSelectedItem());
+            genre3 = getId((String) cbxGenre3.getSelectedItem());
+            genre4 = getId((String) cbxGenre4.getSelectedItem());
+            genre5 = getId((String) cbxGenre5.getSelectedItem());
             try{
-                result = save(id, judul, tahunRelease, genre1, genre2, genre3, genre4, genre5, sinopsis, cover);
-            } catch (Exception e) {
+                result = update(id, judul, tahunRelease, genre1, genre2, genre3, genre4, genre5, sinopsis, durasi, sutradara, penulis, aktor, gambar);
+            }catch (Exception e) {
                 System.out.println(e.getMessage());
             }
             if(result){
-                JOptionPane.showMessageDialog(jPanel1, "Film berhasil diubah");
-//                new Read().read(id, 1);
+                JOptionPane.showMessageDialog(jPanel2, "Perubahan berhasil disimpan");
+                new Read().read(id, 1);
                 this.dispose();
-            } else {
-                JOptionPane.showMessageDialog(jPanel1, "Film gagal diubah");
+            }else{
+                JOptionPane.showMessageDialog(jPanel2, "Perubahan gagal disimpan");
             }
         }
-    }//GEN-LAST:event_btnSaveActionPerformed
+    }//GEN-LAST:event_btnUpdateActionPerformed
+
+    private void btnCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelActionPerformed
+        // TODO add your handling code here:
+        new Read().read(id, 1);
+        this.dispose();
+    }//GEN-LAST:event_btnCancelActionPerformed
+
+    private void txtSutradaraActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtSutradaraActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_txtSutradaraActionPerformed
 
     /**
      * @param args the command line arguments
@@ -511,7 +661,7 @@ public class Update extends javax.swing.JFrame {
     private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnChoose;
     private javax.swing.JButton btnLogout;
-    private javax.swing.JButton btnSave;
+    private javax.swing.JButton btnUpdate;
     private javax.swing.JComboBox cbxGenre1;
     private javax.swing.JComboBox cbxGenre2;
     private javax.swing.JComboBox cbxGenre3;
@@ -519,19 +669,28 @@ public class Update extends javax.swing.JFrame {
     private javax.swing.JComboBox cbxGenre5;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel2;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
+    private javax.swing.JLabel jLabel14;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JLabel lblPicture;
+    private javax.swing.JLabel lblUser;
+    private javax.swing.JTextField txtAktor;
+    private javax.swing.JTextField txtDurasi;
     private javax.swing.JTextField txtJudul;
+    private javax.swing.JTextField txtPenulis;
     private javax.swing.JTextArea txtSinopsis;
+    private javax.swing.JTextField txtSutradara;
     private javax.swing.JTextField txtTahun;
     // End of variables declaration//GEN-END:variables
 }
