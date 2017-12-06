@@ -5,7 +5,6 @@
  */
 package moviedatabase;
 
-import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -35,6 +34,7 @@ public class Search extends javax.swing.JFrame {
     public Search() {
         initComponents();
         if(Session.getStatus()){
+            lblUser.setText(Session.getUsername());
             btnLogin.setVisible(false);
             btnLogout.setVisible(true);
         }else{
@@ -45,110 +45,111 @@ public class Search extends javax.swing.JFrame {
         lblGenre.setVisible(false);
         txtSearchTahun.setVisible(false);
         cbxSearchGenre.setVisible(false);
+        setExtendedState(java.awt.Frame.MAXIMIZED_BOTH);
     }
 
-//    public void search(){
-//        jPanel2.removeAll();
-//        Map<Integer, JButton> btnImage = new HashMap<Integer, JButton>();
-//        jPanel2.setLayout(new GridLayout(0, 4));
-//        int count = 0;
-//        if(txtSearch.getText().equals("") && !cbMetode.isSelected()){
-//            JOptionPane.showMessageDialog(this, "Keyword masih kosong");
-//        }else if(cbMetode.isSelected() && txtSearchTahun.getText().equals("") && cbxSearchGenre.getSelectedIndex() == 0){
-//            JOptionPane.showMessageDialog(this, "Pilih salah satu metode");
-//        }else{
-//            try{
-//                Connection c = SQLiteJDBCDriverConnection.connect();
-//                String sql;
-//                PreparedStatement ps = null;
-//                if(cbMetode.isSelected()){
-//                    if(txtSearchTahun.getText().equals("")){
-//                        sql = "SELECT * FROM Movie WHERE (judul LIKE ? OR sinopsis LIKE ?) AND (genre1 = ? OR genre2 = ? OR genre3 = ? OR genre4 = ? OR genre5 = ?)";
-//                        ps = c.prepareStatement(sql);
-//                        ps.setString(1, "%" + txtSearch.getText() + "%");
-//                        ps.setString(2, "%" + txtSearch.getText() + "%");
-//                        ps.setInt(3, cbxSearchGenre.getSelectedIndex());
-//                        ps.setInt(4, cbxSearchGenre.getSelectedIndex());
-//                        ps.setInt(5, cbxSearchGenre.getSelectedIndex());
-//                        ps.setInt(6, cbxSearchGenre.getSelectedIndex());
-//                        ps.setInt(7, cbxSearchGenre.getSelectedIndex());
-//                    }else if(cbxSearchGenre.getSelectedIndex() == 0){
-//                        sql = "SELECT * FROM Movie WHERE (judul LIKE ? OR sinopsis LIKE ?) AND tahun = ?";
-//                        ps = c.prepareStatement(sql);
-//                        ps.setString(1, "%" + txtSearch.getText() + "%");
-//                        ps.setString(2, "%" + txtSearch.getText() + "%");
-//                        ps.setInt(3, Integer.parseInt(txtSearchTahun.getText()));
-//                    } else{
-//                        sql = "SELECT * FROM Movie WHERE (judul LIKE ? OR sinopsis LIKE ?) AND tahun = ? AND (genre1 = ? OR genre2 = ? OR genre3 = ? OR genre4 = ? OR genre5 = ?)";
-//                        ps = c.prepareStatement(sql);
-//                        ps.setString(1, "%" + txtSearch.getText() + "%");
-//                        ps.setString(2, "%" + txtSearch.getText() + "%");
-//                        ps.setInt(3, Integer.parseInt(txtSearchTahun.getText()));
-//                        ps.setInt(4, cbxSearchGenre.getSelectedIndex());
-//                        ps.setInt(5, cbxSearchGenre.getSelectedIndex());
-//                        ps.setInt(6, cbxSearchGenre.getSelectedIndex());
-//                        ps.setInt(7, cbxSearchGenre.getSelectedIndex());
-//                        ps.setInt(8, cbxSearchGenre.getSelectedIndex());
-//                    }
-//                }else{
-//                    sql = "SELECT * FROM Movie WHERE judul LIKE ? OR sinopsis LIKE ?";
-//                    ps = c.prepareStatement(sql);
-//                    ps.setString(1, "%" + txtSearch.getText() + "%");
-//                    ps.setString(2, "%" + txtSearch.getText() + "%");
-//                }    
-//                ResultSet rs = ps.executeQuery();
-//                while(rs.next()){
-//                    int id = rs.getInt("id");
-//                    String img = "src/Cover/" + rs.getString("gambar");
-//                    String judul = rs.getString("judul");
-//                    String tahun = rs.getString("tahun");
-//
-//                    BufferedImage bimg = null;
-//                    try{
-//                        bimg = ImageIO.read(new File(img));
-//                    } catch(IOException e){
-//                        System.out.println(e.getMessage());
-//                    }
-//                    Image image = bimg.getScaledInstance(150, 200, Image.SCALE_SMOOTH);
-//                    ImageIcon ii = new ImageIcon(image);
-//
-//                    btnImage.put(id, new JButton(judul + " (" + tahun + ")", ii){
-//                        {
-//                            setSize(150, 200);
-//                            setMaximumSize(getSize());
-//
-//                        }
-//                    });
-//                    count++;
-//                }
-//            } catch(SQLException e){
-//                System.out.println(e.getMessage());
-//            }
-//
-//            if(count == 0){
-//                SwingUtilities.updateComponentTreeUI(this);
-//                JOptionPane.showMessageDialog(this, "Hasil pencarian tidak ditemukan");
-//            } else {
-//                show(btnImage);
-//            }
-//        }
-//    }
-//    
-//    private void show(Map<Integer, JButton> btnImage){
-//        SwingUtilities.updateComponentTreeUI(this);
-//        for(int key : btnImage.keySet()){
-//            btnImage.get(key).setVerticalTextPosition(SwingConstants.BOTTOM);
-//            btnImage.get(key).setHorizontalTextPosition(SwingConstants.CENTER);
-//            
-//            jPanel2.add(btnImage.get(key));
-//            
-//            btnImage.get(key).addActionListener(new java.awt.event.ActionListener() {
-//                public void actionPerformed(java.awt.event.ActionEvent evt) {
-//                    btnImageActionPerformed(evt, key);
-//                }
-//            });
-//        }
-//    }
+    public void search(){
+        jPanel2.removeAll();
+        Map<Integer, JButton> btnGambar = new HashMap<Integer, JButton>();
+        jPanel2.setLayout(new WrapLayout());
+        int count = 0;
+        if(txtSearch.getText().equals("") && !cbMetode.isSelected()){
+            JOptionPane.showMessageDialog(this, "Keyword masih kosong");
+        }else if(cbMetode.isSelected() && txtSearchTahun.getText().equals("") && cbxSearchGenre.getSelectedIndex() == 0){
+            JOptionPane.showMessageDialog(this, "Pilih salah satu metode");
+        }else{
+            Connection c = SQLiteJDBCDriverConnection.connect();
+            try{
+                String sql;
+                PreparedStatement ps = null;
+                if(cbMetode.isSelected()){
+                    if(txtSearchTahun.getText().equals("")){
+                        sql = "SELECT * FROM Movie WHERE (judul LIKE ? OR sinopsis LIKE ?) AND (genre1 = ? OR genre2 = ? OR genre3 = ? OR genre4 = ? OR genre5 = ?)";
+                        ps = c.prepareStatement(sql);
+                        ps.setString(1, "%" + txtSearch.getText() + "%");
+                        ps.setString(2, "%" + txtSearch.getText() + "%");
+                        ps.setInt(3, cbxSearchGenre.getSelectedIndex());
+                        ps.setInt(4, cbxSearchGenre.getSelectedIndex());
+                        ps.setInt(5, cbxSearchGenre.getSelectedIndex());
+                        ps.setInt(6, cbxSearchGenre.getSelectedIndex());
+                        ps.setInt(7, cbxSearchGenre.getSelectedIndex());
+                    }else if(cbxSearchGenre.getSelectedIndex() == 0){
+                        sql = "SELECT * FROM Movie WHERE (judul LIKE ? OR sinopsis LIKE ?) AND tahun = ?";
+                        ps = c.prepareStatement(sql);
+                        ps.setString(1, "%" + txtSearch.getText() + "%");
+                        ps.setString(2, "%" + txtSearch.getText() + "%");
+                        ps.setInt(3, Integer.parseInt(txtSearchTahun.getText()));
+                    } else{
+                        sql = "SELECT * FROM Movie WHERE (judul LIKE ? OR sinopsis LIKE ?) AND tahun = ? AND (genre1 = ? OR genre2 = ? OR genre3 = ? OR genre4 = ? OR genre5 = ?)";
+                        ps = c.prepareStatement(sql);
+                        ps.setString(1, "%" + txtSearch.getText() + "%");
+                        ps.setString(2, "%" + txtSearch.getText() + "%");
+                        ps.setInt(3, Integer.parseInt(txtSearchTahun.getText()));
+                        ps.setInt(4, cbxSearchGenre.getSelectedIndex());
+                        ps.setInt(5, cbxSearchGenre.getSelectedIndex());
+                        ps.setInt(6, cbxSearchGenre.getSelectedIndex());
+                        ps.setInt(7, cbxSearchGenre.getSelectedIndex());
+                        ps.setInt(8, cbxSearchGenre.getSelectedIndex());
+                    }
+                }else{
+                    sql = "SELECT * FROM Movie WHERE judul LIKE ? OR sinopsis LIKE ?";
+                    ps = c.prepareStatement(sql);
+                    ps.setString(1, "%" + txtSearch.getText() + "%");
+                    ps.setString(2, "%" + txtSearch.getText() + "%");
+                }    
+                ResultSet rs = ps.executeQuery();
+                while(rs.next()){
+                    int id = rs.getInt("id");
+                    String img = "src/Image/" + rs.getString("gambar");
+                    String judul = rs.getString("judul");
+                    String tahun = rs.getString("tahun");
+
+                    BufferedImage bimg = null;
+                    try{
+                        bimg = ImageIO.read(new File(img));
+                    } catch(IOException e){
+                        System.out.println(e.getMessage());
+                    }
+                    Image image = bimg.getScaledInstance(150, 200, Image.SCALE_SMOOTH);
+                    ImageIcon ii = new ImageIcon(image);
+
+                    btnGambar.put(id, new JButton(judul + " (" + tahun + ")", ii){
+                        {
+                            setSize(150, 200);
+                            setMaximumSize(getSize());
+
+                        }
+                    });
+                    count++;
+                }
+            } catch(SQLException e){
+                System.out.println(e.getMessage());
+            }
+
+            if(count == 0){
+                SwingUtilities.updateComponentTreeUI(this);
+                JOptionPane.showMessageDialog(this, "Hasil pencarian tidak ditemukan");
+            } else {
+                show(btnGambar);
+            }
+        }
+    }
+    
+    private void show(Map<Integer, JButton> btnImage){
+        SwingUtilities.updateComponentTreeUI(this);
+        for(int key : btnImage.keySet()){
+            btnImage.get(key).setVerticalTextPosition(SwingConstants.BOTTOM);
+            btnImage.get(key).setHorizontalTextPosition(SwingConstants.CENTER);
+            
+            jPanel2.add(btnImage.get(key));
+            
+            btnImage.get(key).addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    btnImageActionPerformed(evt, key);
+                }
+            });
+        }
+    }
     
     /**
      * This method is called from within the constructor to initialize the form.
@@ -161,13 +162,12 @@ public class Search extends javax.swing.JFrame {
 
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
+        lblUser = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         btnLogout = new javax.swing.JButton();
         btnLogin = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
-        btnAdd = new javax.swing.JButton();
-        btnBack = new javax.swing.JButton();
+        btnCancel = new javax.swing.JButton();
         jLabel4 = new javax.swing.JLabel();
         txtSearch = new javax.swing.JTextField();
         btnSearch = new javax.swing.JButton();
@@ -179,17 +179,16 @@ public class Search extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Movie Database");
-        setResizable(false);
 
         jPanel1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/Image/brainware.png"))); // NOI18N
 
-        jLabel2.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel2.setText("User");
-        jLabel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        lblUser.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        lblUser.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblUser.setText("User");
+        lblUser.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
         jLabel3.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -223,7 +222,7 @@ public class Search extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, 625, Short.MAX_VALUE)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(lblUser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btnLogout)
@@ -241,7 +240,7 @@ public class Search extends javax.swing.JFrame {
                         .addComponent(btnLogout))
                     .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(lblUser, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
                 .addContainerGap())
@@ -249,12 +248,10 @@ public class Search extends javax.swing.JFrame {
 
         jPanel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
-        btnAdd.setText("Add Movie");
-
-        btnBack.setText("Back");
-        btnBack.addActionListener(new java.awt.event.ActionListener() {
+        btnCancel.setText("Cancel");
+        btnCancel.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnBackActionPerformed(evt);
+                btnCancelActionPerformed(evt);
             }
         });
 
@@ -290,8 +287,6 @@ public class Search extends javax.swing.JFrame {
 
         lblGenre.setText("Genre");
 
-        cbxSearchGenre.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
         jPanel2Layout.setHorizontalGroup(
@@ -299,10 +294,7 @@ public class Search extends javax.swing.JFrame {
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(btnBack)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 627, Short.MAX_VALUE)
-                        .addComponent(btnAdd))
+                    .addComponent(btnCancel)
                     .addGroup(jPanel2Layout.createSequentialGroup()
                         .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel2Layout.createSequentialGroup()
@@ -314,12 +306,11 @@ public class Search extends javax.swing.JFrame {
                                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                                     .addComponent(cbxSearchGenre, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addComponent(txtSearch)
-                                    .addComponent(txtSearchTahun, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(18, 18, 18)
-                                .addComponent(btnSearch))
+                                    .addComponent(txtSearchTahun, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE)))
                             .addComponent(cbMetode))
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addContainerGap())
+                        .addGap(18, 18, 18)
+                        .addComponent(btnSearch)))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -340,9 +331,7 @@ public class Search extends javax.swing.JFrame {
                     .addComponent(lblGenre)
                     .addComponent(cbxSearchGenre, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 295, Short.MAX_VALUE)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(btnBack)
-                    .addComponent(btnAdd))
+                .addComponent(btnCancel)
                 .addContainerGap())
         );
 
@@ -365,7 +354,7 @@ public class Search extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnImageActionPerformed(java.awt.event.ActionEvent evt, int id){
-//        new Read().read(id, 2);
+        new Read().read(id, 2);
         this.dispose();
     }
     
@@ -390,7 +379,7 @@ public class Search extends javax.swing.JFrame {
 
     private void btnSearchActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnSearchActionPerformed
         // TODO add your handling code here:
-//        search();
+        search();
     }//GEN-LAST:event_btnSearchActionPerformed
 
     private void cbMetodeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbMetodeActionPerformed
@@ -412,11 +401,11 @@ public class Search extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_txtSearchTahunActionPerformed
 
-    private void btnBackActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBackActionPerformed
+    private void btnCancelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnCancelActionPerformed
         // TODO add your handling code here:
         new Home().setVisible(true);
         this.dispose();
-    }//GEN-LAST:event_btnBackActionPerformed
+    }//GEN-LAST:event_btnCancelActionPerformed
 
     /**
      * @param args the command line arguments
@@ -454,21 +443,20 @@ public class Search extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnAdd;
-    private javax.swing.JButton btnBack;
+    private javax.swing.JButton btnCancel;
     private javax.swing.JButton btnLogin;
     private javax.swing.JButton btnLogout;
     private javax.swing.JButton btnSearch;
     private javax.swing.JCheckBox cbMetode;
     private javax.swing.JComboBox cbxSearchGenre;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JLabel lblGenre;
     private javax.swing.JLabel lblTahun;
+    private javax.swing.JLabel lblUser;
     private javax.swing.JTextField txtSearch;
     private javax.swing.JTextField txtSearchTahun;
     // End of variables declaration//GEN-END:variables
