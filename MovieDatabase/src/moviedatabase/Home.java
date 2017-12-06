@@ -40,6 +40,7 @@ public class Home extends javax.swing.JFrame {
         }
         initComponents();
         if(Session.getStatus()){
+            lblUser.setText(Session.getUsername());
             btnLogin.setVisible(false);
             btnLogout.setVisible(true);
             if(Session.getRole()==1){
@@ -56,58 +57,50 @@ public class Home extends javax.swing.JFrame {
             btnLogout.setVisible(false);
             btnLogin.setVisible(true);
         }
-//        show();
+        show();
     }
     
-//    public void show(){
-//        String sql = "SELECT * FROM Movie";
-//        
-//        Map<Integer, JButton> btnImage = new HashMap<Integer, JButton>();
-//        jPanel1.setLayout(new GridLayout(0, 4));
-//        
-//        try{
-//            Connection c = SQLiteJDBCDriverConnection.connect();
-//            Statement s = c.createStatement();
-//            ResultSet rs = s.executeQuery(sql);
-//            while(rs.next()){
-//                int id = rs.getInt("id");
-//                String img = "src/Image/" + rs.getString("gambar");
-//                String judul = rs.getString("judul");
-//                String tahun = rs.getString("tahun");
-//                
-//                BufferedImage bimg = null;
-//                try{
-//                    bimg = ImageIO.read(new File(img));
-//                } catch(IOException e){
-//                    System.out.println(e.getMessage());
-//                }
-//                Image image = bimg.getScaledInstance(150, 200, Image.SCALE_SMOOTH);
-//                ImageIcon ii = new ImageIcon(image);
-//                
-//                btnImage.put(id, new JButton(judul + " (" + tahun + ")", ii){
-//                    {
-//                        setSize(150, 200);
-//                        setMaximumSize(getSize());
-//                    }
-//                });
-//            }
-//        }catch(SQLException e){
-//            System.out.println(e.getMessage());
-//        }
-//        
-//        for(int key : btnImage.keySet()){
-//            btnImage.get(key).setVerticalTextPosition(SwingConstants.BOTTOM);
-//            btnImage.get(key).setHorizontalTextPosition(SwingConstants.CENTER);
-//            
-//            jPanel1.add(btnImage.get(key));
-//            
-//            btnImage.get(key).addActionListener(new java.awt.event.ActionListener() {
-//                public void actionPerformed(java.awt.event.ActionEvent evt) {
-//                    btnImageActionPerformed(evt, key);
-//                }
-//            });
-//        }
-//    }
+    public void show(){
+        String sql = "SELECT * FROM Movie";
+        Map<Integer, JButton> btnMovie = new HashMap<Integer, JButton>();
+        jPanel2.setLayout(new WrapLayout());
+        Connection c = SQLiteJDBCDriverConnection.connect();
+        try{
+            Statement s = c.createStatement();
+            ResultSet rs = s.executeQuery(sql);
+            while(rs.next()){
+                int id = rs.getInt("id");
+                String img = "src/Image/" + rs.getString("gambar");
+                String judul = rs.getString("judul");
+                String tahun = rs.getString("tahun");
+                BufferedImage bimg = null;
+                try{
+                    bimg = ImageIO.read(new File(img));
+                } catch(IOException e){
+                    System.out.println(e.getMessage());
+                }
+                Image image = bimg.getScaledInstance(150, 200, Image.SCALE_SMOOTH);
+                ImageIcon ii = new ImageIcon(image);
+                btnMovie.put(id, new JButton(judul + " (" + tahun + ")", ii){
+                    {
+                        setSize(150, 200);
+                    }
+                });
+            }
+        }catch(SQLException e){
+            System.out.println(e.getMessage());
+        }
+        for(int key : btnMovie.keySet()){
+            btnMovie.get(key).setVerticalTextPosition(SwingConstants.BOTTOM);
+            btnMovie.get(key).setHorizontalTextPosition(SwingConstants.CENTER);
+            jPanel2.add(btnMovie.get(key));
+            btnMovie.get(key).addActionListener(new java.awt.event.ActionListener() {
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    btnMovieActionPerformed(evt, key);
+                }
+            });
+        }
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -120,7 +113,7 @@ public class Home extends javax.swing.JFrame {
 
         jPanel1 = new javax.swing.JPanel();
         btnLogout = new javax.swing.JButton();
-        jLabel2 = new javax.swing.JLabel();
+        lblUser = new javax.swing.JLabel();
         jLabel3 = new javax.swing.JLabel();
         jLabel1 = new javax.swing.JLabel();
         btnLogin = new javax.swing.JButton();
@@ -131,7 +124,6 @@ public class Home extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Movie Database");
-        setResizable(false);
 
         jPanel1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
@@ -142,10 +134,10 @@ public class Home extends javax.swing.JFrame {
             }
         });
 
-        jLabel2.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
-        jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel2.setText("User");
-        jLabel2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
+        lblUser.setFont(new java.awt.Font("Tahoma", 0, 12)); // NOI18N
+        lblUser.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        lblUser.setText("User");
+        lblUser.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
         jLabel3.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
         jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -175,7 +167,7 @@ public class Home extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel3, javax.swing.GroupLayout.DEFAULT_SIZE, 625, Short.MAX_VALUE)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(lblUser, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(btnLogout)
@@ -190,7 +182,7 @@ public class Home extends javax.swing.JFrame {
                     .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(lblUser, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(btnLogin, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -266,10 +258,10 @@ public class Home extends javax.swing.JFrame {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-//    private void btnImageActionPerformed(java.awt.event.ActionEvent evt, int id){
-//        new Read().read(id, 1);
-//        this.dispose();
-//    }
+    private void btnMovieActionPerformed(java.awt.event.ActionEvent evt, int id){
+        new Read().read(id, 1);
+        this.dispose();
+    }
     
     private void btnLogoutActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnLogoutActionPerformed
         // TODO add your handling code here:
@@ -300,7 +292,7 @@ public class Home extends javax.swing.JFrame {
 
     private void btnAddGenreActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAddGenreActionPerformed
         // TODO add your handling code here:
-        new CreateGenre().setVisible(true);
+        new Genre(false).setVisible(true);
         this.dispose();
     }//GEN-LAST:event_btnAddGenreActionPerformed
 
@@ -346,9 +338,9 @@ public class Home extends javax.swing.JFrame {
     private javax.swing.JButton btnLogout;
     private javax.swing.JButton btnSearch;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JLabel lblUser;
     // End of variables declaration//GEN-END:variables
 }
